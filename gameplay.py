@@ -4,8 +4,7 @@ import random
 
 from game_field import GameField
 from gameplay_utils import Cell
-from gameplay_exceptions import GameOverError, GameWinError
-from gameplay_utils import LittleFigureDetector, return_changes
+from gameplay_utils import return_changes
 from constants import MotionDirection, PositionChange
 
 
@@ -38,32 +37,14 @@ class GamePlay:
         )
 
     @return_changes
-    def init_borders_on_game_field(self):
-        for i in range(self._game_field.height):
-            self._game_field.update_cells(
-                PositionChange(new_y=i, new_x=0, new_cell=Cell.BORDER),
-                PositionChange(new_y=i, new_x=self._game_field.width - 1, new_cell=Cell.BORDER),
-            )
-
-        for j in range(self._game_field.width):
-            self._game_field.update_cells(
-                PositionChange(new_y=0, new_x=j, new_cell=Cell.BORDER),
-                PositionChange(new_y=self._game_field.height - 1, new_x=j, new_cell=Cell.BORDER),
-            )
-
-    @return_changes
     def init_enemy_and_hero_on_game_field(self):
         self._game_field.update_cells(
-            PositionChange(new_y=self._hero.y, new_x=self._hero.x, new_cell=Cell.TRACK),
-            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, new_cell=Cell.ENEMY),
+            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TRACK),
+            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
         )
 
     @return_changes
-    def make_progress(self, hero_motion_direction: MotionDirection):
-        self._move_hero(hero_motion_direction)
-        self._move_enemy()
-
-    def _move_hero(self, motion_direction: MotionDirection):
+    def move_hero(self, motion_direction: MotionDirection):
         if motion_direction == motion_direction.DO_NOTHING:
             return
 
@@ -71,21 +52,14 @@ class GamePlay:
             self._get_new_coordinate_by_motion_direction(self._hero, motion_direction)
         )
 
-        if self._is_border_reached(new_hero_y, new_hero_x):
-            LittleFigureDetector(self._game_field).detect()
-            if self._is_enemy_lose():
-                raise GameWinError
-
-        if not self._can_person_go(new_hero_y, new_hero_x):
-            return
-
-        self._game_field.update_cell(
-            PositionChange(new_y=new_hero_y, new_x=new_hero_x, new_cell=Cell.TRACK,
-                           old_y=self._hero.y, old_x=self._hero.x, old_cell=Cell.EMPTY,
-        ))
+        self._game_field.update_cells(
+            PositionChange(new_y=new_hero_y, new_x=new_hero_x, value=Cell.TRACK),
+            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY),
+        )
         self._hero.y, self._hero.x = new_hero_y, new_hero_x
 
-    def _move_enemy(self):
+    @return_changes
+    def move_enemy(self):
         if self._enemy.steps_count < 1:
             self._set_new_enemy_direction()
 
@@ -93,23 +67,13 @@ class GamePlay:
             self._get_new_coordinate_by_motion_direction(self._enemy, self._enemy.motion_direction)
         )
 
-        if self._is_enemy_reached_track(new_enemy_y, new_enemy_x):
-            raise GameOverError
-
-        if not self._can_person_go(new_enemy_y, new_enemy_x):
-            self._set_new_enemy_direction()
-            return
-
-        #self._game_field.update_cell(PositionChange(
-        #    old_y=self._enemy.y, old_x=self._enemy.x, old_cell=Cell.EMPTY,
-        #    new_y=new_enemy_y, new_x=new_enemy_x, new_cell=Cell.ENEMY,
-        #))
         self._game_field.update_cells(
-            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, new_cell=Cell.EMPTY),
-            PositionChange(new_y=new_enemy_y, new_x=new_enemy_x, new_cell=Cell.ENEMY),
+            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.EMPTY),
+            PositionChange(new_y=new_enemy_y, new_x=new_enemy_x, value=Cell.ENEMY),
         )
 
-        self._enemy.y, self._enemy.x = new_enemy_y, new_enemy_x
+        self._enemy.y = new_enemy_y
+        self._enemy.x = new_enemy_x
         self._enemy.steps_count -= 1
 
     def _set_new_enemy_direction(self):
@@ -117,26 +81,6 @@ class GamePlay:
         self._enemy.motion_direction = self._get_new_movement_direction(
             self._enemy.motion_direction,
         )
-
-    def _can_person_go(self, new_y: int, new_x: int) -> bool:
-        return self._game_field.get(new_y, new_x) == Cell.EMPTY
-
-    def _is_enemy_reached_track(self, new_y: int, new_x: int) -> bool:
-        return self._game_field.get(new_y, new_x) == Cell.TRACK
-
-    def _is_border_reached(self, new_y: int, new_x: int) -> bool:
-        return self._game_field.get(new_y, new_x) in (Cell.BORDER, Cell.MARKED)
-
-    def _is_on_track(self, new_y: int, new_x: int) -> bool:
-        return self._game_field.get(new_y, new_x) == Cell.TRACK
-
-    def _is_enemy_lose(self):
-        return all((
-            self._game_field.get(self._enemy.y + 1, self._enemy.x) in (Cell.BORDER, Cell.MARKED),
-            self._game_field.get(self._enemy.y - 1, self._enemy.x) in (Cell.BORDER, Cell.MARKED),
-            self._game_field.get(self._enemy.y, self._enemy.x - 1) in (Cell.BORDER, Cell.MARKED),
-            self._game_field.get(self._enemy.y, self._enemy.x + 1) in (Cell.BORDER, Cell.MARKED),
-        ))
 
     @staticmethod
     def _get_new_coordinate_by_motion_direction(

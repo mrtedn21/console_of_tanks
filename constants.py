@@ -37,8 +37,8 @@ class Cell(Enum):
 class PositionChange:
     new_y: int
     new_x: int
-    new_cell: Cell
+
+    value: Cell
 
     old_y: Optional[int] = None
     old_x: Optional[int] = None
-    old_cell: Optional[Cell] = None

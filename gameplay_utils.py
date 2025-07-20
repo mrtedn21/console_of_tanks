@@ -40,26 +40,26 @@ class LittleFigureDetector:
                 if empty_count < considered_count:
                     if self._game_field.get(y, x) == Cell.EMPTY:
                         self._game_field.update_cell(
-                            PositionChange(new_y=y, new_x=x, new_cell=Cell.MARKED)
+                            PositionChange(new_y=y, new_x=x, value=Cell.MARKED)
                         )
                     if self._game_field.get(y, x) == Cell.CONSIDER:
                         self._game_field.update_cell(
-                            PositionChange(new_y=y, new_x=x, new_cell=Cell.EMPTY)
+                            PositionChange(new_y=y, new_x=x, value=Cell.EMPTY)
                         )
                 else:
                     if self._game_field.get(y, x) == Cell.CONSIDER:
                         self._game_field.update_cell(
-                            PositionChange(new_y=y, new_x=x, new_cell=Cell.MARKED)
+                            PositionChange(new_y=y, new_x=x, value=Cell.MARKED)
                         )
                 if self._game_field.get(y, x) == Cell.TRACK:
                     self._game_field.update_cell(
-                        PositionChange(new_y=y, new_x=x, new_cell=Cell.MARKED)
+                        PositionChange(new_y=y, new_x=x, value=Cell.MARKED)
                     )
 
     def _mark_cell_considered_if_it_is_empty(self, y: int, x: int):
         if self._game_field.get(y, x) == Cell.EMPTY:
             self._game_field.update_cell(
-                PositionChange(new_y=y, new_x=x, new_cell=Cell.CONSIDER)
+                PositionChange(new_y=y, new_x=x, value=Cell.CONSIDER)
             )
             self._mark_random_figure_as_considered(y, x)
 

@@ -19,7 +19,7 @@ class GameField:
     def update_cell(self, position_change: PositionChange):
         try:
             self._matrix[position_change.new_y][position_change.new_x] = (
-                position_change.new_cell
+                position_change.value
             )
             self._position_changes.append(position_change)
         except IndexError:

@@ -19,12 +19,14 @@ class Terminal:
         self._screen_obj.nodelay(True)
         curses.noecho()
         curses.cbreak()
+        curses.curs_set(0)
         self._screen_obj.keypad(True)
 
         self.max_y, self.max_x = self.get_max_y_and_x()
 
     def get_max_y_and_x(self):
-        return self._screen_obj.getmaxyx()
+        max_y, max_x = self._screen_obj.getmaxyx()
+        return max_y, int(max_x / 2)
 
     def get_pressed_key(self):
         return self._screen_obj.getch()
@@ -38,38 +40,15 @@ class Terminal:
         if print_text_after_destroy:
             print(print_text_after_destroy)
 
-    #def print_changes(self, changes: list[PositionChange]):
-    #    for change in changes:
-    #        if change.new_cell == Cell.BORDER:
-    #            self._print_border(change.new_y, change.new_x)
-    #        else:
-    #            char = cell_type_to_terminal_char[change.new_cell]
-    #            self._print(change.new_y, change.new_x * 2, char)
-
-    #            if change.old_y:
-    #                char = cell_type_to_terminal_char[change.old_cell]
-    #                self._print(change.old_y, change.old_x, char)
-    #            else:
-    #                self._print(change.new_y, change.new_x , char)
-
-    #    self._screen_obj.refresh()
-
     def print_changes(self, changes: list[PositionChange]):
         for change in changes:
-            if change.new_cell == Cell.BORDER:
-                self._print_border(change.new_y, change.new_x)
-            elif change.new_cell == Cell.TRACK:
-                char = cell_type_to_terminal_char[change.new_cell]
+                char = cell_type_to_terminal_char[change.value]
                 self._print(change.new_y, change.new_x * 2, char)
-                if change.new_y == change.old_y:
+                if change.old_x:
+                    diff_x = change.new_x - change.old_x
+                    self._print(change.new_y, change.new_x * 2 - diff_x, char)
+                elif change.value == Cell.MARKED:
                     self._print(change.new_y, change.new_x * 2 - 1, char)
-            elif change.new_cell == Cell.MARKED:
-                char = cell_type_to_terminal_char[change.new_cell]
-                self._print(change.new_y, change.new_x * 2, 'w')
-                self._print(change.new_y, change.new_x * 2 - 1, 'w')
-            else:
-                char = cell_type_to_terminal_char[change.new_cell]
-                self._print(change.new_y, change.new_x, char)
 
         self._screen_obj.refresh()
 
@@ -78,23 +57,3 @@ class Terminal:
             self._screen_obj.addch(y, x, char)
         except curses.error:
             pass
-
-    def _print_border(self, y: int, x: int):
-        if y == self.max_y - 1 and x == self.max_x - 1:
-            self._print(y, x * 2, "┘")
-
-        elif y == 0 and x == 0:
-            self._print(y, x * 2, "┌")
-
-        elif y == self.max_y - 1 and x == 0:
-            self._print(y, x * 2, "└")
-
-        elif y == 0 and x == self.max_x - 1:
-            self._print(y, x * 2, "┐")
-
-        elif y == 0 or y == self.max_y - 1:
-            self._print(y, x * 2, "─")
-            self._print(y, x * 2 - 1, "─")
-
-        elif x == 0 or x == self.max_x - 1:
-            self._print(y, x * 2, "│")
