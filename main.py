@@ -7,7 +7,12 @@ from gameplay import GamePlay
 from gameplay_exceptions import GameOverError, GameWinError
 from constants import MotionDirection
 from terminal import Terminal
+import logging
 
+logging.basicConfig(filename='some.log', level=logging.DEBUG)
+logger = logging.getLogger()
+
+global_pressed_key = None
 
 ESCAPE_KEY = 27
 UP_KEY = 259
@@ -28,15 +33,13 @@ pressed_key_to_motion_direction = defaultdict(
 
 
 async def move_hero(terminal, game_play):
-    pressed_key = terminal.get_pressed_key()
-    while pressed_key != ESCAPE_KEY:
-        motion_direction = pressed_key_to_motion_direction[pressed_key]
-
+    logger.info(f'pressed_key: {global_pressed_key}')
+    while global_pressed_key != ESCAPE_KEY:
+        logger.info(f'pressed_key: {global_pressed_key}')
+        motion_direction = pressed_key_to_motion_direction[global_pressed_key]
         changes = game_play.move_hero(motion_direction)
         terminal.print_changes(changes)
         await asyncio.sleep(1 / 100)
-
-        pressed_key = terminal.get_pressed_key()
 
 
 async def move_enemy(terminal, game_play):
@@ -44,6 +47,13 @@ async def move_enemy(terminal, game_play):
         changes = game_play.move_enemy()
         terminal.print_changes(changes)
         await asyncio.sleep(1 / 20)
+
+
+async def reading_key(terminal):
+    global global_pressed_key
+    while True:
+        global_pressed_key = terminal.get_pressed_key()
+        await asyncio.sleep(1 / 100)
 
 
 async def main():
@@ -60,6 +70,7 @@ async def main():
         async with asyncio.TaskGroup() as tg:
             tg.create_task(move_enemy(terminal, game_play))
             tg.create_task(move_hero(terminal, game_play))
+            tg.create_task(reading_key(terminal))
 
     except KeyboardInterrupt:
         terminal.destroy("Exit from game")
