@@ -15,6 +15,7 @@ logger = logging.getLogger()
 global_pressed_key = None
 
 ESCAPE_KEY = 27
+SPACE = 32
 UP_KEY = 259
 DOWN_KEY = 258
 LEFT_KEY = 260
@@ -30,6 +31,14 @@ pressed_key_to_motion_direction = defaultdict(
         RIGHT_KEY: MotionDirection.RIGHT,
     },
 )
+
+
+async def shoot(terminal, game_play):
+    while global_pressed_key != ESCAPE_KEY:
+        motion_direction = pressed_key_to_motion_direction[global_pressed_key]
+        changes = game_play.shoot(motion_direction)
+        terminal.print_changes(changes)
+        await asyncio.sleep(1 / 10)
 
 
 async def move_hero(terminal, game_play):
@@ -68,9 +77,10 @@ async def main():
 
     try:
         async with asyncio.TaskGroup() as tg:
-            tg.create_task(move_enemy(terminal, game_play))
-            tg.create_task(move_hero(terminal, game_play))
             tg.create_task(reading_key(terminal))
+            tg.create_task(move_enemy(terminal, game_play))
+            tg.create_task(shoot(terminal, game_play))
+            tg.create_task(move_hero(terminal, game_play))
 
     except KeyboardInterrupt:
         terminal.destroy("Exit from game")

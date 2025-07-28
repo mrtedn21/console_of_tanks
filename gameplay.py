@@ -12,6 +12,7 @@ from constants import MotionDirection, PositionChange
 class BasePerson:
     y: int
     x: int
+    motion_direction: Optional[MotionDirection] = None
 
 
 @dataclass
@@ -20,15 +21,20 @@ class Hero(BasePerson):
 
 
 @dataclass
+class Bullet(BasePerson):
+    pass
+
+
+@dataclass
 class Enemy(BasePerson):
-    steps_count: int
-    motion_direction: Optional[MotionDirection] = None
+    steps_count: Optional[int] = None
 
 
 class GamePlay:
     def __init__(self, max_height: int, max_width: int):
         self._game_field: GameField = GameField(max_height, max_width)
         self._hero = Hero(y=1, x=1)
+        self._bullet = Bullet(y=0, x=0)
         self._enemy = Enemy(
             y=int(self._game_field.height / 2),
             x=int(self._game_field.width / 2),
@@ -42,6 +48,20 @@ class GamePlay:
             PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TRACK),
             PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
         )
+
+    @return_changes
+    def shoot(self, motion_direction: MotionDirection):
+        motion_direction = MotionDirection.RIGHT
+
+        new_y, new_x = (
+            self._get_new_coordinate_by_motion_direction(self._bullet, motion_direction)
+        )
+
+        self._game_field.update_cells(
+            PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
+            PositionChange(new_y=self._bullet.y, new_x=self._bullet.x, value=Cell.EMPTY),
+        )
+        self._bullet.y, self._bullet.x = new_y, new_x
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
@@ -91,6 +111,7 @@ class GamePlay:
             MotionDirection.DOWN: lambda y, x: (y + 1, x),
             MotionDirection.RIGHT: lambda y, x: (y, x + 1),
             MotionDirection.LEFT: lambda y, x: (y, x - 1),
+            MotionDirection.DO_NOTHING: lambda y, x: (y, x),
         }
         return decision_mapping[motion_direction](some_person.y, some_person.x)
 

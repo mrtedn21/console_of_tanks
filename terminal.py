@@ -10,6 +10,7 @@ cell_type_to_terminal_char = {
     Cell.CONSIDER: " ",
     Cell.MARKED: "X",
     Cell.ENEMY: "O",
+    Cell.BULLET: "Z",
 }
 
 

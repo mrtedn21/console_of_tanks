@@ -31,6 +31,7 @@ class Cell(Enum):
     CONSIDER = 3
     MARKED = 4
     ENEMY = 5
+    BULLET = 6
 
 
 @dataclass
