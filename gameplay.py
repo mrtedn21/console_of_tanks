@@ -50,11 +50,25 @@ class GamePlay:
         )
 
     @return_changes
-    def shoot(self, motion_direction: MotionDirection):
-        motion_direction = MotionDirection.RIGHT
+    def shoot(self, is_hero_shot: False):
+        if not self._hero.motion_direction:
+            return
+
+        if is_hero_shot:
+            new_y, new_x = (
+                self._get_new_coordinate_by_motion_direction(self._hero, self._bullet.motion_direction)
+            )
+            self._bullet = Bullet(
+                y=new_y,
+                x=new_x,
+                motion_direction=self._hero.motion_direction,
+            )
+
+        if not self._bullet.motion_direction:
+            return
 
         new_y, new_x = (
-            self._get_new_coordinate_by_motion_direction(self._bullet, motion_direction)
+            self._get_new_coordinate_by_motion_direction(self._bullet, self._bullet.motion_direction)
         )
 
         self._game_field.update_cells(
@@ -68,6 +82,7 @@ class GamePlay:
         if motion_direction == motion_direction.DO_NOTHING:
             return
 
+        self._hero.motion_direction = motion_direction
         new_hero_y, new_hero_x = (
             self._get_new_coordinate_by_motion_direction(self._hero, motion_direction)
         )
@@ -111,9 +126,11 @@ class GamePlay:
             MotionDirection.DOWN: lambda y, x: (y + 1, x),
             MotionDirection.RIGHT: lambda y, x: (y, x + 1),
             MotionDirection.LEFT: lambda y, x: (y, x - 1),
-            MotionDirection.DO_NOTHING: lambda y, x: (y, x),
         }
-        return decision_mapping[motion_direction](some_person.y, some_person.x)
+        if foo := decision_mapping.get(motion_direction):
+            return foo(some_person.y, some_person.x)
+        else:
+            return some_person.y, some_person.x
 
     def _get_new_movement_direction(self, old_direction):
         new_dir = random.randint(1, 4)
