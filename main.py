@@ -9,7 +9,11 @@ from constants import MotionDirection
 from terminal import Terminal
 import logging
 
-logging.basicConfig(filename='some.log', level=logging.DEBUG)
+logging.basicConfig(
+    filename='some.log',
+    level=logging.DEBUG,
+    format='%(asctime)s %(message)s'
+)
 logger = logging.getLogger()
 
 global_pressed_key = None

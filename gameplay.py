@@ -1,11 +1,14 @@
 from typing import Optional
 from dataclasses import dataclass
 import random
+import logging
 
 from game_field import GameField
 from gameplay_utils import Cell
 from gameplay_utils import return_changes
 from constants import MotionDirection, PositionChange
+
+logger = logging.getLogger()
 
 
 @dataclass
@@ -51,31 +54,43 @@ class GamePlay:
 
     @return_changes
     def shoot(self, is_hero_shot: False):
+        logger.info('       begin')
+        logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
+        logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
         if not self._hero.motion_direction:
             return
 
         if is_hero_shot:
             new_y, new_x = (
-                self._get_new_coordinate_by_motion_direction(self._hero, self._bullet.motion_direction)
+                self._get_new_coordinate_by_motion_direction(self._hero, self._hero.motion_direction)
             )
             self._bullet = Bullet(
                 y=new_y,
                 x=new_x,
                 motion_direction=self._hero.motion_direction,
             )
+            logger.info('       hero shot')
+            logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
+            logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
+        else:
+            logger.info('       no hero shot')
+            logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
+            logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
+            new_y, new_x = (
+                self._get_new_coordinate_by_motion_direction(self._bullet, self._bullet.motion_direction)
+            )
 
         if not self._bullet.motion_direction:
             return
-
-        new_y, new_x = (
-            self._get_new_coordinate_by_motion_direction(self._bullet, self._bullet.motion_direction)
-        )
 
         self._game_field.update_cells(
             PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
             PositionChange(new_y=self._bullet.y, new_x=self._bullet.x, value=Cell.EMPTY),
         )
         self._bullet.y, self._bullet.x = new_y, new_x
+        logger.info('       final')
+        logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
+        logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
