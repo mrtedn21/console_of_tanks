@@ -62,8 +62,11 @@ class GamePlay:
                 self._get_new_coordinate_by_motion_direction(bullet, bullet.motion_direction)
             )
 
-            if bullet.y > self._game_field.height or bullet.x > self._game_field.width:
+            if not self._can_object_move(new_y, new_x):
                 bullet.motion_direction = None
+                self._game_field.update_cell(
+                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                )
             else:
                 self._game_field.update_cells(
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
@@ -72,6 +75,7 @@ class GamePlay:
                 bullet.y, bullet.x = new_y, new_x
 
         self._bullets = [b for b in self._bullets if b.motion_direction]
+        logger.info(f'count of bullets: {len(self._bullets)}')
 
         if is_hero_shot:
             new_y, new_x = (
@@ -98,6 +102,9 @@ class GamePlay:
             self._get_new_coordinate_by_motion_direction(self._hero, motion_direction)
         )
 
+        if not self._can_object_move(new_hero_y, new_hero_x):
+            return
+
         self._game_field.update_cells(
             PositionChange(new_y=new_hero_y, new_x=new_hero_x, value=Cell.TRACK),
             PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY),
@@ -112,6 +119,10 @@ class GamePlay:
         new_enemy_y, new_enemy_x = (
             self._get_new_coordinate_by_motion_direction(self._enemy, self._enemy.motion_direction)
         )
+
+        if not self._can_object_move(new_enemy_y, new_enemy_x):
+            self._enemy.steps_count = 0
+            return
 
         self._game_field.update_cells(
             PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.EMPTY),
@@ -149,3 +160,9 @@ class GamePlay:
             return MotionDirection(self._get_new_movement_direction(new_dir))
         else:
             return MotionDirection(new_dir)
+
+    def _can_object_move(self, new_y: int, new_x: int):
+        return all((
+            0 <= new_y <= self._game_field.height - 1,
+            0 <= new_x <= self._game_field.width - 1,
+        ))

@@ -39,8 +39,6 @@ pressed_key_to_motion_direction = defaultdict(
 
 async def shoot(terminal, game_play):
     while global_pressed_key != ESCAPE_KEY:
-        logger.info(f'pressed_key: {global_pressed_key}')
-        logger.info(f'is space: {global_pressed_key == SPACE}')
         changes = game_play.shoot(global_pressed_key == SPACE)
         terminal.print_changes(changes)
         await asyncio.sleep(1 / 100)
