@@ -54,9 +54,6 @@ class GamePlay:
 
     @return_changes
     def shoot(self, is_hero_shot: False):
-        logger.info('       begin')
-        logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
-        logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
         if not self._hero.motion_direction:
             return
 
@@ -69,13 +66,7 @@ class GamePlay:
                 x=new_x,
                 motion_direction=self._hero.motion_direction,
             )
-            logger.info('       hero shot')
-            logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
-            logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
         else:
-            logger.info('       no hero shot')
-            logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
-            logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
             new_y, new_x = (
                 self._get_new_coordinate_by_motion_direction(self._bullet, self._bullet.motion_direction)
             )
@@ -88,9 +79,6 @@ class GamePlay:
             PositionChange(new_y=self._bullet.y, new_x=self._bullet.x, value=Cell.EMPTY),
         )
         self._bullet.y, self._bullet.x = new_y, new_x
-        logger.info('       final')
-        logger.info(f'bullet y: {self._bullet.y}, bullet x: {self._bullet.x} motion: {self._bullet.motion_direction}')
-        logger.info(f'hero y: {self._hero.y}, hero x: {self._hero.x} motion: {self._hero.motion_direction}')
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
