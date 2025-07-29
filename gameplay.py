@@ -37,7 +37,7 @@ class GamePlay:
     def __init__(self, max_height: int, max_width: int):
         self._game_field: GameField = GameField(max_height, max_width)
         self._hero = Hero(y=1, x=1)
-        self._bullet = Bullet(y=0, x=0)
+        self._bullets: list[Bullet] = []
         self._enemy = Enemy(
             y=int(self._game_field.height / 2),
             x=int(self._game_field.width / 2),
@@ -57,32 +57,36 @@ class GamePlay:
         if not self._hero.motion_direction:
             return
 
+        for bullet in self._bullets:
+            new_y, new_x = (
+                self._get_new_coordinate_by_motion_direction(bullet, bullet.motion_direction)
+            )
+
+            if bullet.y > self._game_field.height or bullet.x > self._game_field.width:
+                bullet.motion_direction = None
+            else:
+                self._game_field.update_cells(
+                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
+                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                )
+                bullet.y, bullet.x = new_y, new_x
+
+        self._bullets = [b for b in self._bullets if b.motion_direction]
+
         if is_hero_shot:
             new_y, new_x = (
                 self._get_new_coordinate_by_motion_direction(self._hero, self._hero.motion_direction)
             )
-            self._bullet = Bullet(
+            bullet = Bullet(
                 y=new_y,
                 x=new_x,
                 motion_direction=self._hero.motion_direction,
             )
-        else:
-            new_y, new_x = (
-                self._get_new_coordinate_by_motion_direction(self._bullet, self._bullet.motion_direction)
+            self._bullets.append(bullet)
+            self._game_field.update_cells(
+                PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
+                PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
             )
-
-        if not self._bullet.motion_direction:
-            return
-
-        if self._bullet.y > self._game_field.height or self._bullet.x > self._game_field.width:
-            self._bullet.motion_direction = None
-
-
-        self._game_field.update_cells(
-            PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
-            PositionChange(new_y=self._bullet.y, new_x=self._bullet.x, value=Cell.EMPTY),
-        )
-        self._bullet.y, self._bullet.x = new_y, new_x
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
