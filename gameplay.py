@@ -74,6 +74,10 @@ class GamePlay:
         if not self._bullet.motion_direction:
             return
 
+        if self._bullet.y > self._game_field.height or self._bullet.x > self._game_field.width:
+            self._bullet.motion_direction = None
+
+
         self._game_field.update_cells(
             PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
             PositionChange(new_y=self._bullet.y, new_x=self._bullet.x, value=Cell.EMPTY),
