@@ -1,6 +1,5 @@
 import sys
 import asyncio
-import time
 from collections import defaultdict
 
 from gameplay import GamePlay

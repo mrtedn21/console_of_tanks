@@ -1,16 +1,14 @@
 import curses
 from constants import PositionChange
 
-from gameplay_utils import Cell
+from constants import Cell
 
 
 cell_type_to_terminal_char = {
     Cell.EMPTY: " ",
-    Cell.TRACK: "X",
-    Cell.CONSIDER: " ",
-    Cell.MARKED: "X",
+    Cell.TANK: "T",
     Cell.ENEMY: "O",
-    Cell.BULLET: "Z",
+    Cell.BULLET: "x",
 }
 
 
@@ -48,8 +46,6 @@ class Terminal:
                 if change.old_x:
                     diff_x = change.new_x - change.old_x
                     self._print(change.new_y, change.new_x * 2 - diff_x, char)
-                elif change.value == Cell.MARKED:
-                    self._print(change.new_y, change.new_x * 2 - 1, char)
 
         self._screen_obj.refresh()
 

@@ -4,7 +4,7 @@ import random
 import logging
 
 from game_field import GameField
-from gameplay_utils import Cell
+from constants import Cell
 from gameplay_utils import return_changes
 from constants import MotionDirection, PositionChange
 
@@ -48,7 +48,7 @@ class GamePlay:
     @return_changes
     def init_enemy_and_hero_on_game_field(self):
         self._game_field.update_cells(
-            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TRACK),
+            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
             PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
         )
 
@@ -75,7 +75,6 @@ class GamePlay:
                 bullet.y, bullet.x = new_y, new_x
 
         self._bullets = [b for b in self._bullets if b.motion_direction]
-        logger.info(f'count of bullets: {len(self._bullets)}')
 
         if is_hero_shot:
             new_y, new_x = (
@@ -106,7 +105,7 @@ class GamePlay:
             return
 
         self._game_field.update_cells(
-            PositionChange(new_y=new_hero_y, new_x=new_hero_x, value=Cell.TRACK),
+            PositionChange(new_y=new_hero_y, new_x=new_hero_x, value=Cell.TANK),
             PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY),
         )
         self._hero.y, self._hero.x = new_hero_y, new_hero_x

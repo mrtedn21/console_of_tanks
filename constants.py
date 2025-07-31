@@ -26,12 +26,11 @@ class Cell(Enum):
     marked, forever"""
 
     EMPTY = 0
-    BORDER = 1
-    TRACK = 2
-    CONSIDER = 3
-    MARKED = 4
-    ENEMY = 5
-    BULLET = 6
+    ENEMY = 1
+    TANK = 2
+    BULLET = 3
+    BRICKS = 4
+    IRON = 5
 
 
 @dataclass
