@@ -1,4 +1,5 @@
 import sys
+import json
 import asyncio
 from collections import defaultdict
 
@@ -70,9 +71,12 @@ async def main():
     max_y, max_x = terminal.get_max_y_and_x()
     sys.setrecursionlimit(max_y * max_x * 2)
 
+    with open('map.json') as f:
+        game_map = json.load(f)
+
     game_play = GamePlay(max_y, max_x)
 
-    changes = game_play.init_enemy_and_hero_on_game_field()
+    changes = game_play.init_map_and_heroes(game_map)
     terminal.print_changes(changes)
 
     try:

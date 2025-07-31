@@ -9,6 +9,8 @@ cell_type_to_terminal_char = {
     Cell.TANK: "T",
     Cell.ENEMY: "O",
     Cell.BULLET: "x",
+    Cell.BRICKS: "B",
+    Cell.IRON: "I",
 }
 
 
