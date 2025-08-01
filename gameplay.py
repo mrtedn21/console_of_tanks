@@ -60,18 +60,36 @@ class GamePlay:
     @return_changes
     def shoot(self, is_hero_shot: False):
         if not self._hero.motion_direction:
-            return
+            self._hero.motion_direction = MotionDirection.DOWN
+
+        if is_hero_shot:
+            self._bullets.append(Bullet(
+                y=self._hero.y,
+                x=self._hero.x,
+                motion_direction=self._hero.motion_direction,
+            ))
 
         for bullet in self._bullets:
             new_y, new_x = (
                 self._get_new_coordinate_by_motion_direction(bullet, bullet.motion_direction)
             )
 
-            if not self._can_object_move(new_y, new_x):
+            if self._game_field.get(new_y, new_x) == Cell.BRICKS:
+                if self._hero.y != new_y or self._hero.x != new_x:
+                    self._game_field.update_cell(PositionChange(
+                        new_y=new_y, new_x=new_x, value=Cell.EMPTY,
+                    ))
+                if self._hero.y != bullet.y or self._hero.x != bullet.x:
+                    self._game_field.update_cell(PositionChange(
+                        new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY
+                    ))
                 bullet.motion_direction = None
-                self._game_field.update_cell(
-                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                )
+            elif not self._can_object_move(new_y, new_x):
+                bullet.motion_direction = None
+                if self._hero.y != bullet.y or self._hero.x != bullet.x:
+                    self._game_field.update_cell(
+                        PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                    )
             else:
                 self._game_field.update_cells(
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
@@ -80,21 +98,6 @@ class GamePlay:
                 bullet.y, bullet.x = new_y, new_x
 
         self._bullets = [b for b in self._bullets if b.motion_direction]
-
-        if is_hero_shot:
-            new_y, new_x = (
-                self._get_new_coordinate_by_motion_direction(self._hero, self._hero.motion_direction)
-            )
-            bullet = Bullet(
-                y=new_y,
-                x=new_x,
-                motion_direction=self._hero.motion_direction,
-            )
-            self._bullets.append(bullet)
-            self._game_field.update_cells(
-                PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
-                PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-            )
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
@@ -169,4 +172,5 @@ class GamePlay:
         return all((
             0 <= new_y <= self._game_field.height - 1,
             0 <= new_x <= self._game_field.width - 1,
+            self._game_field.get(new_y, new_x) == Cell.EMPTY,
         ))
