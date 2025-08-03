@@ -64,8 +64,7 @@ class GamePlay:
 
         if is_hero_shot:
             self._bullets.append(Bullet(
-                y=self._hero.y,
-                x=self._hero.x,
+                y=self._hero.y, x=self._hero.x,
                 motion_direction=self._hero.motion_direction,
             ))
 
@@ -75,21 +74,16 @@ class GamePlay:
             )
 
             if self._game_field.get(new_y, new_x) == Cell.BRICKS:
-                if not self._is_coordinates_of_tank(new_y, new_x):
-                    self._game_field.update_cell(PositionChange(
-                        new_y=new_y, new_x=new_x, value=Cell.EMPTY,
-                    ))
-                if not self._is_coordinates_of_tank(bullet.y, bullet.x):
-                    self._game_field.update_cell(PositionChange(
-                        new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY
-                    ))
+                self._game_field.update_cells(
+                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
+                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                )
                 bullet.motion_direction = None
             elif not self._can_object_move(new_y, new_x):
                 bullet.motion_direction = None
-                if not self._is_coordinates_of_tank(bullet.y, bullet.x):
-                    self._game_field.update_cell(
-                        PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                    )
+                self._game_field.update_cell(
+                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                )
             else:
                 self._game_field.update_cells(
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
@@ -98,6 +92,12 @@ class GamePlay:
                 bullet.y, bullet.x = new_y, new_x
 
         self._bullets = [b for b in self._bullets if b.motion_direction]
+
+        # This hack needs to rewrite Tank Cell if bullet writes to it. This is more pretty than
+        # checking is new coordinates of bullet the same with tank, in reason of multiple checks
+        self._game_field.update_cell(
+            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
+        )
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
