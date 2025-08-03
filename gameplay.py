@@ -59,13 +59,16 @@ class GamePlay:
 
     @return_changes
     def shoot(self, is_hero_shot: False):
-        if not self._hero.motion_direction:
-            self._hero.motion_direction = MotionDirection.DOWN
-
         if is_hero_shot:
             self._bullets.append(Bullet(
                 y=self._hero.y, x=self._hero.x,
-                motion_direction=self._hero.motion_direction,
+                motion_direction=self._hero.motion_direction or MotionDirection.DOWN,
+            ))
+
+        if self._is_random_allows_enemy_to_shoot():
+            self._bullets.append(Bullet(
+                y=self._enemy.y, x=self._enemy.x,
+                motion_direction=self._enemy.motion_direction or MotionDirection.DOWN,
             ))
 
         for bullet in self._bullets:
@@ -95,8 +98,9 @@ class GamePlay:
 
         # This hack needs to rewrite Tank Cell if bullet writes to it. This is more pretty than
         # checking is new coordinates of bullet the same with tank, in reason of multiple checks
-        self._game_field.update_cell(
+        self._game_field.update_cells(
             PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
+            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
         )
 
     @return_changes
@@ -146,9 +150,6 @@ class GamePlay:
             self._enemy.motion_direction,
         )
 
-    def _is_coordinates_of_tank(self, y: int, x: int):
-        return self._hero.y == y and self._hero.x == x
-
     @staticmethod
     def _get_new_coordinate_by_motion_direction(
         some_person: BasePerson, motion_direction: MotionDirection
@@ -177,3 +178,7 @@ class GamePlay:
             0 <= new_x <= self._game_field.width - 1,
             self._game_field.get(new_y, new_x) == Cell.EMPTY,
         ))
+
+    @staticmethod
+    def _is_random_allows_enemy_to_shoot():
+        return random.randint(0, 30) == 0
