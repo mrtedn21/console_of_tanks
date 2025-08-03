@@ -47,15 +47,15 @@ class GamePlay:
 
     @return_changes
     def init_map_and_heroes(self, game_map: list[list[int]]):
-        self._game_field.update_cells(
-            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
-            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
-        )
         for index_y, y in enumerate(game_map):
             for index_x, x in enumerate(y):
                 self._game_field.update_cell(
                     PositionChange(new_y=index_y, new_x=index_x, value=Cell(x))
                 )
+        self._game_field.update_cells(
+            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
+            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
+        )
 
     @return_changes
     def shoot(self, is_hero_shot: False):
