@@ -75,18 +75,18 @@ class GamePlay:
             )
 
             if self._game_field.get(new_y, new_x) == Cell.BRICKS:
-                if self._hero.y != new_y or self._hero.x != new_x:
+                if not self._is_coordinates_of_tank(new_y, new_x):
                     self._game_field.update_cell(PositionChange(
                         new_y=new_y, new_x=new_x, value=Cell.EMPTY,
                     ))
-                if self._hero.y != bullet.y or self._hero.x != bullet.x:
+                if not self._is_coordinates_of_tank(bullet.y, bullet.x):
                     self._game_field.update_cell(PositionChange(
                         new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY
                     ))
                 bullet.motion_direction = None
             elif not self._can_object_move(new_y, new_x):
                 bullet.motion_direction = None
-                if self._hero.y != bullet.y or self._hero.x != bullet.x:
+                if not self._is_coordinates_of_tank(bullet.y, bullet.x):
                     self._game_field.update_cell(
                         PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                     )
@@ -145,6 +145,9 @@ class GamePlay:
         self._enemy.motion_direction = self._get_new_movement_direction(
             self._enemy.motion_direction,
         )
+
+    def _is_coordinates_of_tank(self, y: int, x: int):
+        return self._hero.y == y and self._hero.x == x
 
     @staticmethod
     def _get_new_coordinate_by_motion_direction(
