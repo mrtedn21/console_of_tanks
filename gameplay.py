@@ -1,6 +1,6 @@
 from typing import Optional
 from dataclasses import dataclass
-import random
+from random import randint
 import logging
 
 from game_field import GameField
@@ -79,7 +79,7 @@ class GamePlay:
                     Bullet(
                         y=enemy.y,
                         x=enemy.x,
-                        motion_direction=enemy.motion_direction or MotionDirection.DOWN,
+                        motion_direction=enemy.motion_direction or MotionDirection(randint(1, 4)),
                     )
                 )
 
@@ -212,7 +212,7 @@ class GamePlay:
             enemy.steps_count -= 1
 
     def _set_new_enemy_direction(self, enemy):
-        enemy.steps_count = random.randint(2, self._game_field.height - 1)
+        enemy.steps_count = randint(2, self._game_field.height - 1)
         enemy.motion_direction = self._get_new_movement_direction(
             enemy.motion_direction,
         )
@@ -233,7 +233,7 @@ class GamePlay:
             return some_person.y, some_person.x
 
     def _get_new_movement_direction(self, old_direction):
-        new_dir = random.randint(1, 4)
+        new_dir = randint(1, 4)
         if new_dir == old_direction:
             return MotionDirection(self._get_new_movement_direction(new_dir))
         else:
@@ -251,7 +251,7 @@ class GamePlay:
     @staticmethod
     def _is_random_allows_enemy_to_shoot():
         """This functions detect random moment to allow enemy to shoot"""
-        return random.randint(0, 30) == 0
+        return randint(0, 30) == 0
 
     def _get_bullet_by_coordinates(self, y: int, x: int):
         try:
@@ -267,8 +267,8 @@ class GamePlay:
 
     def _get_new_enemy(self):
         while True:
-            y = random.randint(1, self._game_field.height - 1)
-            x = random.randint(1, self._game_field.width - 1)
+            y = randint(1, self._game_field.height - 1)
+            x = randint(1, self._game_field.width - 1)
 
             if self._game_field.get(y, x) != Cell.EMPTY:
                 continue
