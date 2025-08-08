@@ -6,6 +6,7 @@ import logging
 from game_field import GameField
 from constants import Cell
 from gameplay_utils import return_changes
+from gameplay_exceptions import GameOverError
 from constants import MotionDirection, PositionChange
 
 logger = logging.getLogger()
@@ -107,6 +108,7 @@ class GamePlay:
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
+                raise GameOverError
 
             elif counter_bullet := self._get_bullet_by_coordinates(new_y, new_x):
                 bullet.motion_direction = None
@@ -161,6 +163,7 @@ class GamePlay:
             self._game_field.update_cell(
                 PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
             )
+            raise GameOverError
 
         if not self._can_object_move(new_y, new_x):
             return
@@ -174,7 +177,12 @@ class GamePlay:
     @return_changes
     def move_enemy(self):
         if not self._enemy.is_alive:
-            return
+            self._enemy = Enemy(
+                y=int(self._game_field.height / 2),
+                x=int(self._game_field.width / 2),
+                steps_count=0,
+                motion_direction=None,
+            )
 
         if self._enemy.steps_count < 1:
             self._set_new_enemy_direction()
@@ -188,6 +196,7 @@ class GamePlay:
             self._game_field.update_cell(
                 PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
             )
+            raise GameOverError
 
         if not self._can_object_move(new_y, new_x):
             self._enemy.steps_count = 0
