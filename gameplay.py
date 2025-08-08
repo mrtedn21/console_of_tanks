@@ -38,14 +38,9 @@ class Enemy(BasePerson):
 class GamePlay:
     def __init__(self, max_height: int, max_width: int):
         self._game_field: GameField = GameField(max_height, max_width)
-        self._hero = Hero(y=1, x=1)
         self._bullets: list[Bullet] = []
-        self._enemy = Enemy(
-            y=int(self._game_field.height / 2),
-            x=int(self._game_field.width / 2),
-            steps_count=0,
-            motion_direction=None,
-        )
+        self._hero: Hero
+        self._enemy: Enemy
 
     @return_changes
     def init_map_and_heroes(self, game_map: list[list[int]]):
@@ -54,6 +49,10 @@ class GamePlay:
                 self._game_field.update_cell(
                     PositionChange(new_y=index_y, new_x=index_x, value=Cell(x))
                 )
+
+        self._hero = Hero(y=1, x=1)
+        self._enemy = self._get_new_enemy()
+
         self._game_field.update_cells(
             PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
             PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
@@ -177,12 +176,7 @@ class GamePlay:
     @return_changes
     def move_enemy(self):
         if not self._enemy.is_alive:
-            self._enemy = Enemy(
-                y=int(self._game_field.height / 2),
-                x=int(self._game_field.width / 2),
-                steps_count=0,
-                motion_direction=None,
-            )
+            self._enemy = self._get_new_enemy()
 
         if self._enemy.steps_count < 1:
             self._set_new_enemy_direction()
@@ -258,3 +252,13 @@ class GamePlay:
             return [b for b in self._bullets if (b.y, b.x) == (y, x)][0]
         except IndexError:
             return None
+
+    def _get_new_enemy(self):
+        while True:
+            y = random.randint(1, self._game_field.height - 1)
+            x = random.randint(1, self._game_field.width - 1)
+
+            if self._game_field.get(y, x) != Cell.EMPTY:
+                continue
+
+            return Enemy(y=y, x=x)
