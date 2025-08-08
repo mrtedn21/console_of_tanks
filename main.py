@@ -1,4 +1,3 @@
-import sys
 import json
 import asyncio
 from collections import defaultdict
@@ -10,9 +9,7 @@ from terminal import Terminal
 import logging
 
 logging.basicConfig(
-    filename='some.log',
-    level=logging.INFO,
-    format='%(asctime)s %(message)s'
+    filename="some.log", level=logging.INFO, format="%(asctime)s %(message)s"
 )
 logger = logging.getLogger()
 
@@ -70,7 +67,7 @@ async def main():
     terminal = Terminal()
     max_y, max_x = terminal.get_max_y_and_x()
 
-    with open('map.json') as f:
+    with open("map.json") as f:
         game_map = json.load(f)
 
     game_play = GamePlay(max_y, max_x)

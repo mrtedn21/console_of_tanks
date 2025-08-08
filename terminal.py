@@ -43,11 +43,11 @@ class Terminal:
 
     def print_changes(self, changes: list[PositionChange]):
         for change in changes:
-                char = cell_type_to_terminal_char[change.value]
-                self._print(change.new_y, change.new_x * 2, char)
-                if change.old_x:
-                    diff_x = change.new_x - change.old_x
-                    self._print(change.new_y, change.new_x * 2 - diff_x, char)
+            char = cell_type_to_terminal_char[change.value]
+            self._print(change.new_y, change.new_x * 2, char)
+            if change.old_x:
+                diff_x = change.new_x - change.old_x
+                self._print(change.new_y, change.new_x * 2 - diff_x, char)
 
         self._screen_obj.refresh()
 
