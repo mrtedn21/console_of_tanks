@@ -31,7 +31,7 @@ class Bullet(BasePerson):
 
 @dataclass
 class Enemy(BasePerson):
-    steps_count: Optional[int] = None
+    steps_count: int = 0
 
 
 class GamePlay:
@@ -148,22 +148,28 @@ class GamePlay:
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
-        if motion_direction == motion_direction.DO_NOTHING:
+        if motion_direction == motion_direction.DO_NOTHING or not self._hero.is_alive:
             return
 
         self._hero.motion_direction = motion_direction
-        new_hero_y, new_hero_x = self._get_new_coordinate_by_motion_direction(
+        new_y, new_x = self._get_new_coordinate_by_motion_direction(
             self._hero, motion_direction
         )
 
-        if not self._can_object_move(new_hero_y, new_hero_x):
+        if self._game_field.get(new_y, new_x) == Cell.ENEMY:
+            self._hero.is_alive = False
+            self._game_field.update_cell(
+                PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
+            )
+
+        if not self._can_object_move(new_y, new_x):
             return
 
         self._game_field.update_cells(
-            PositionChange(new_y=new_hero_y, new_x=new_hero_x, value=Cell.TANK),
+            PositionChange(new_y=new_y, new_x=new_x, value=Cell.TANK),
             PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY),
         )
-        self._hero.y, self._hero.x = new_hero_y, new_hero_x
+        self._hero.y, self._hero.x = new_y, new_x
 
     @return_changes
     def move_enemy(self):
@@ -173,21 +179,27 @@ class GamePlay:
         if self._enemy.steps_count < 1:
             self._set_new_enemy_direction()
 
-        new_enemy_y, new_enemy_x = self._get_new_coordinate_by_motion_direction(
+        new_y, new_x = self._get_new_coordinate_by_motion_direction(
             self._enemy, self._enemy.motion_direction
         )
 
-        if not self._can_object_move(new_enemy_y, new_enemy_x):
+        if self._game_field.get(new_y, new_x) == Cell.TANK:
+            self._hero.is_alive = False
+            self._game_field.update_cell(
+                PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
+            )
+
+        if not self._can_object_move(new_y, new_x):
             self._enemy.steps_count = 0
             return
 
         self._game_field.update_cells(
             PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.EMPTY),
-            PositionChange(new_y=new_enemy_y, new_x=new_enemy_x, value=Cell.ENEMY),
+            PositionChange(new_y=new_y, new_x=new_x, value=Cell.ENEMY),
         )
 
-        self._enemy.y = new_enemy_y
-        self._enemy.x = new_enemy_x
+        self._enemy.y = new_y
+        self._enemy.x = new_x
         self._enemy.steps_count -= 1
 
     def _set_new_enemy_direction(self):
