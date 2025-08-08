@@ -90,6 +90,13 @@ class GamePlay:
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
+            elif counter_bullet := self._get_bullet_by_coordinates(new_y, new_x):
+                bullet.motion_direction = None
+                counter_bullet.motion_direction = None
+                self._game_field.update_cells(
+                    PositionChange(new_y=counter_bullet.y, new_x=counter_bullet.x, value=Cell.EMPTY),
+                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                )
             elif not self._can_object_move(new_y, new_x):
                 bullet.motion_direction = None
                 self._game_field.update_cell(
@@ -197,3 +204,9 @@ class GamePlay:
     def _is_random_allows_enemy_to_shoot():
         """This functions detect random moment to allow enemy to shoot"""
         return random.randint(0, 30) == 0
+
+    def _get_bullet_by_coordinates(self, y: int, x: int):
+        try:
+            return [b for b in self._bullets if (b.y, b.x) == (y, x)][0]
+        except IndexError:
+            return None

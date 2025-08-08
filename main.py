@@ -41,7 +41,7 @@ async def shoot(terminal, game_play):
     while global_pressed_key != ESCAPE_KEY:
         changes = game_play.shoot(global_pressed_key == SPACE)
         terminal.print_changes(changes)
-        await asyncio.sleep(1 / 100)
+        await asyncio.sleep(1 / 50)
 
 
 async def move_hero(terminal, game_play):
@@ -49,7 +49,7 @@ async def move_hero(terminal, game_play):
         motion_direction = pressed_key_to_motion_direction[global_pressed_key]
         changes = game_play.move_hero(motion_direction)
         terminal.print_changes(changes)
-        await asyncio.sleep(1 / 100)
+        await asyncio.sleep(1 / 50)
 
 
 async def move_enemy(terminal, game_play):
@@ -63,13 +63,12 @@ async def reading_key(terminal):
     global global_pressed_key
     while True:
         global_pressed_key = terminal.get_pressed_key()
-        await asyncio.sleep(1 / 100)
+        await asyncio.sleep(1 / 50)
 
 
 async def main():
     terminal = Terminal()
     max_y, max_x = terminal.get_max_y_and_x()
-    sys.setrecursionlimit(max_y * max_x * 2)
 
     with open('map.json') as f:
         game_map = json.load(f)
