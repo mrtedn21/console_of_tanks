@@ -100,6 +100,14 @@ class GamePlay:
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
 
+            elif self._game_field.get(new_y, new_x) == Cell.TANK:
+                self._hero.is_alive = False
+                bullet.motion_direction = None
+                self._game_field.update_cells(
+                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
+                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                )
+
             elif counter_bullet := self._get_bullet_by_coordinates(new_y, new_x):
                 bullet.motion_direction = None
                 counter_bullet.motion_direction = None
@@ -133,9 +141,10 @@ class GamePlay:
                     new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY
                 )
             )
-        self._game_field.update_cell(
-            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
-        )
+        if self._hero.is_alive:
+            self._game_field.update_cell(
+                PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
+            )
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
