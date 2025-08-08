@@ -11,7 +11,7 @@ import logging
 
 logging.basicConfig(
     filename='some.log',
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s %(message)s'
 )
 logger = logging.getLogger()
@@ -56,7 +56,7 @@ async def move_enemy(terminal, game_play):
     while True:
         changes = game_play.move_enemy()
         terminal.print_changes(changes)
-        await asyncio.sleep(1 / 20)
+        await asyncio.sleep(1 / 5)
 
 
 async def reading_key(terminal):

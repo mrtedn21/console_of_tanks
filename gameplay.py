@@ -16,6 +16,7 @@ class BasePerson:
     y: int
     x: int
     motion_direction: Optional[MotionDirection] = None
+    is_alive: bool = True
 
 
 @dataclass
@@ -58,14 +59,14 @@ class GamePlay:
         )
 
     @return_changes
-    def shoot(self, is_hero_shot: False):
+    def shoot(self, is_hero_shot: bool = False):
         if is_hero_shot:
             self._bullets.append(Bullet(
                 y=self._hero.y, x=self._hero.x,
                 motion_direction=self._hero.motion_direction or MotionDirection.DOWN,
             ))
 
-        if self._is_random_allows_enemy_to_shoot():
+        if self._is_random_allows_enemy_to_shoot() and self._enemy.is_alive:
             self._bullets.append(Bullet(
                 y=self._enemy.y, x=self._enemy.x,
                 motion_direction=self._enemy.motion_direction or MotionDirection.DOWN,
@@ -82,6 +83,13 @@ class GamePlay:
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
                 bullet.motion_direction = None
+            elif self._game_field.get(new_y, new_x) == Cell.ENEMY:
+                self._enemy.is_alive = False
+                bullet.motion_direction = None
+                self._game_field.update_cells(
+                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
+                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                )
             elif not self._can_object_move(new_y, new_x):
                 bullet.motion_direction = None
                 self._game_field.update_cell(
@@ -98,9 +106,12 @@ class GamePlay:
 
         # This hack needs to rewrite Tank Cell if bullet writes to it. This is more pretty than
         # checking is new coordinates of bullet the same with tank, in reason of multiple checks
-        self._game_field.update_cells(
+        if self._enemy.is_alive:
+            self._game_field.update_cell(
+                PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY)
+            )
+        self._game_field.update_cell(
             PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
-            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
         )
 
     @return_changes
@@ -124,6 +135,9 @@ class GamePlay:
 
     @return_changes
     def move_enemy(self):
+        if not self._enemy.is_alive:
+            return
+
         if self._enemy.steps_count < 1:
             self._set_new_enemy_direction()
 
@@ -181,4 +195,5 @@ class GamePlay:
 
     @staticmethod
     def _is_random_allows_enemy_to_shoot():
+        """This functions detect random moment to allow enemy to shoot"""
         return random.randint(0, 30) == 0
