@@ -4,10 +4,9 @@ import random
 import logging
 
 from game_field import GameField
-from constants import Cell
 from gameplay_utils import return_changes
 from gameplay_exceptions import GameOverError
-from constants import MotionDirection, PositionChange
+from constants import MotionDirection, PositionChange, Cell, ENEMIES_COUNT
 
 logger = logging.getLogger()
 
@@ -39,8 +38,8 @@ class GamePlay:
     def __init__(self, max_height: int, max_width: int):
         self._game_field: GameField = GameField(max_height, max_width)
         self._bullets: list[Bullet] = []
+        self._enemies: list[Enemy] = []
         self._hero: Hero
-        self._enemy: Enemy
 
     @return_changes
     def init_map_and_heroes(self, game_map: list[list[int]]):
@@ -51,12 +50,16 @@ class GamePlay:
                 )
 
         self._hero = Hero(y=1, x=1)
-        self._enemy = self._get_new_enemy()
 
-        self._game_field.update_cells(
-            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK),
-            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY),
+        self._game_field.update_cell(
+            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
         )
+        for _ in range(ENEMIES_COUNT):
+            enemy = self._get_new_enemy()
+            self._enemies.append(enemy)
+            self._game_field.update_cell(
+                PositionChange(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY),
+            )
 
     @return_changes
     def shoot(self, is_hero_shot: bool = False):
@@ -70,15 +73,15 @@ class GamePlay:
                 )
             )
 
-        if self._is_random_allows_enemy_to_shoot() and self._enemy.is_alive:
-            self._bullets.append(
-                Bullet(
-                    y=self._enemy.y,
-                    x=self._enemy.x,
-                    motion_direction=self._enemy.motion_direction
-                    or MotionDirection.DOWN,
+        for enemy in self._enemies:
+            if self._is_random_allows_enemy_to_shoot() and enemy.is_alive:
+                self._bullets.append(
+                    Bullet(
+                        y=enemy.y,
+                        x=enemy.x,
+                        motion_direction=enemy.motion_direction or MotionDirection.DOWN,
+                    )
                 )
-            )
 
         for bullet in self._bullets:
             new_y, new_x = self._get_new_coordinate_by_motion_direction(
@@ -92,8 +95,8 @@ class GamePlay:
                 )
                 bullet.motion_direction = None
 
-            elif self._game_field.get(new_y, new_x) == Cell.ENEMY:
-                self._enemy.is_alive = False
+            elif counter_enemy := self._get_enemy_by_coordinates(new_y, new_x):
+                counter_enemy.is_alive = False
                 bullet.motion_direction = None
                 self._game_field.update_cells(
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
@@ -136,12 +139,13 @@ class GamePlay:
 
         # This hack needs to rewrite Tank Cell if bullet writes to it. This is more pretty than
         # checking is new coordinates of bullet the same with tank, in reason of multiple checks
-        if self._enemy.is_alive:
-            self._game_field.update_cell(
-                PositionChange(
-                    new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.ENEMY
+        for enemy in self._enemies:
+            if enemy.is_alive:
+                self._game_field.update_cell(
+                    PositionChange(
+                        new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY
+                    )
                 )
-            )
         if self._hero.is_alive:
             self._game_field.update_cell(
                 PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
@@ -175,40 +179,42 @@ class GamePlay:
 
     @return_changes
     def move_enemy(self):
-        if not self._enemy.is_alive:
-            self._enemy = self._get_new_enemy()
+        self._enemies = [e for e in self._enemies if e.is_alive]
+        while len(self._enemies) < ENEMIES_COUNT:
+            self._enemies.append(self._get_new_enemy())
 
-        if self._enemy.steps_count < 1:
-            self._set_new_enemy_direction()
+        for enemy in self._enemies:
+            if enemy.steps_count < 1:
+                self._set_new_enemy_direction(enemy)
 
-        new_y, new_x = self._get_new_coordinate_by_motion_direction(
-            self._enemy, self._enemy.motion_direction
-        )
-
-        if self._game_field.get(new_y, new_x) == Cell.TANK:
-            self._hero.is_alive = False
-            self._game_field.update_cell(
-                PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
+            new_y, new_x = self._get_new_coordinate_by_motion_direction(
+                enemy, enemy.motion_direction
             )
-            raise GameOverError
 
-        if not self._can_object_move(new_y, new_x):
-            self._enemy.steps_count = 0
-            return
+            if self._game_field.get(new_y, new_x) == Cell.TANK:
+                self._hero.is_alive = False
+                self._game_field.update_cell(
+                    PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
+                )
+                raise GameOverError
 
-        self._game_field.update_cells(
-            PositionChange(new_y=self._enemy.y, new_x=self._enemy.x, value=Cell.EMPTY),
-            PositionChange(new_y=new_y, new_x=new_x, value=Cell.ENEMY),
-        )
+            if not self._can_object_move(new_y, new_x):
+                enemy.steps_count = 0
+                return
 
-        self._enemy.y = new_y
-        self._enemy.x = new_x
-        self._enemy.steps_count -= 1
+            self._game_field.update_cells(
+                PositionChange(new_y=enemy.y, new_x=enemy.x, value=Cell.EMPTY),
+                PositionChange(new_y=new_y, new_x=new_x, value=Cell.ENEMY),
+            )
 
-    def _set_new_enemy_direction(self):
-        self._enemy.steps_count = random.randint(2, self._game_field.height - 1)
-        self._enemy.motion_direction = self._get_new_movement_direction(
-            self._enemy.motion_direction,
+            enemy.y = new_y
+            enemy.x = new_x
+            enemy.steps_count -= 1
+
+    def _set_new_enemy_direction(self, enemy):
+        enemy.steps_count = random.randint(2, self._game_field.height - 1)
+        enemy.motion_direction = self._get_new_movement_direction(
+            enemy.motion_direction,
         )
 
     @staticmethod
@@ -250,6 +256,12 @@ class GamePlay:
     def _get_bullet_by_coordinates(self, y: int, x: int):
         try:
             return [b for b in self._bullets if (b.y, b.x) == (y, x)][0]
+        except IndexError:
+            return None
+
+    def _get_enemy_by_coordinates(self, y: int, x: int):
+        try:
+            return [e for e in self._enemies if (e.y, e.x) == (y, x)][0]
         except IndexError:
             return None
 
