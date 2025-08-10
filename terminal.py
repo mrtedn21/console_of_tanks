@@ -1,5 +1,5 @@
 import curses
-from constants import PositionChange
+from constants import PositionChange, BaseGamePlayChange, StatusChange, DISPLAY_WIDTH
 
 from constants import Cell
 
@@ -43,11 +43,15 @@ class Terminal:
 
     def print_changes(self, changes: list[PositionChange]):
         for change in changes:
-            char = cell_type_to_terminal_char[change.value]
-            self._print(change.new_y, change.new_x * 2, char)
-            if change.old_x:
-                diff_x = change.new_x - change.old_x
-                self._print(change.new_y, change.new_x * 2 - diff_x, char)
+            if isinstance(change, PositionChange):
+                char = cell_type_to_terminal_char[change.value]
+                self._print(change.new_y, change.new_x * 2, char)
+                if change.old_x:
+                    diff_x = change.new_x - change.old_x
+                    self._print(change.new_y, change.new_x * 2 - diff_x, char)
+            #else:
+            self._print(self.max_y, self.max_x, '9')
+            self._print(1, self.max_x * 2 - DISPLAY_WIDTH, '9')
 
         self._screen_obj.refresh()
 

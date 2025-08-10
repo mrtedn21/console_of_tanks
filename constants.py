@@ -3,6 +3,7 @@ from typing import Optional
 from enum import Enum
 
 ENEMIES_COUNT = 2
+DISPLAY_WIDTH = 10
 
 
 class MotionDirection(int, Enum):
@@ -34,9 +35,13 @@ class Cell(Enum):
     BRICKS = 4
     IRON = 5
 
+@dataclass
+class BaseGamePlayChange:
+    pass
+
 
 @dataclass
-class PositionChange:
+class PositionChange(BaseGamePlayChange):
     new_y: int
     new_x: int
 
@@ -44,3 +49,8 @@ class PositionChange:
 
     old_y: Optional[int] = None
     old_x: Optional[int] = None
+
+
+@dataclass
+class StatusChange(BaseGamePlayChange):
+    hero_points: int = 0
