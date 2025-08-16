@@ -1,5 +1,4 @@
 import curses
-from constants import DISPLAY_WIDTH
 from objects import Hero, Enemy, PositionChange, StatusChange
 
 from constants import Cell
@@ -25,6 +24,8 @@ class Terminal:
         self._screen_obj.keypad(True)
 
         self.max_y, self.max_x = self.get_max_y_and_x()
+
+        self._print_initial_state()
 
     def get_max_y_and_x(self):
         max_y, max_x = self._screen_obj.getmaxyx()
@@ -52,8 +53,7 @@ class Terminal:
 
         for change in status_chages:
             if change.person_type == Hero:
-                self._print_text(1, self.max_x * 2 - DISPLAY_WIDTH - 8, 'points:')
-                self._print_number(1, self.max_x * 2 - DISPLAY_WIDTH, change.points)
+                self._print_number(1, self.max_x * 2 - 3, change.points)
 
         self._screen_obj.refresh()
 
@@ -69,3 +69,8 @@ class Terminal:
 
     def _print_number(self, y: int, x: int, number: int):
         self._print_text(y, x, str(number))
+
+    def _print_initial_state(self):
+        self._print_text(1, self.max_x * 2 - 11, 'points:')
+        for i in range(self.max_y):
+            self._print(i, self.max_x * 2 - 13, '|')

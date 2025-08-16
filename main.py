@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from gameplay import GamePlay
 from gameplay_exceptions import GameOverError, GameWinError
-from constants import MotionDirection, DISPLAY_WIDTH
+from constants import MotionDirection
 from terminal import Terminal
 import logging
 
@@ -69,7 +69,7 @@ async def reading_key(terminal: Terminal):
 async def main():
     terminal = Terminal()
     max_y, max_x = terminal.get_max_y_and_x()
-    max_x -= DISPLAY_WIDTH
+    max_x -= 7
 
     with open("map.json") as f:
         game_map = json.load(f)

@@ -3,7 +3,6 @@ from typing import Optional
 from enum import Enum
 
 ENEMIES_COUNT = 2
-DISPLAY_WIDTH = 10
 
 
 class MotionDirection(int, Enum):
