@@ -52,12 +52,16 @@ class Terminal:
 
         for change in status_chages:
             if change.person_type == Hero:
-                self._print(1, self.max_x * 2 - DISPLAY_WIDTH, str(change.points))
+                self._print_number(1, self.max_x * 2 - DISPLAY_WIDTH, change.points)
 
         self._screen_obj.refresh()
 
-    def _print(self, y, x, char):
+    def _print(self, y: int, x: int, char: str):
         try:
             self._screen_obj.addch(y, x, char)
         except curses.error:
             pass
+
+    def _print_number(self, y: int, x: int, number: int):
+        for index, char in enumerate(str(number)):
+            self._print(y, x + index, char)
