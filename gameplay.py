@@ -17,7 +17,7 @@ class GamePlay:
         self._game_field: GameField = GameField(max_height, max_width)
         self._bullets: list[Bullet] = []
         self._enemies: list[Enemy] = []
-        self._hero: Hero
+        self._hero: Hero = Hero(y=1, x=1)
         self._status_changes: list[StatusChange] = []
 
     @return_changes
@@ -26,13 +26,13 @@ class GamePlay:
             for index_x, x in enumerate(y):
                 self.update_cell(new_y=index_y, new_x=index_x, value=Cell(x))
 
-        self._hero = Hero(y=1, x=1)
-
         self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
         for _ in range(ENEMIES_COUNT):
             enemy = self._get_new_enemy()
             self._enemies.append(enemy)
             self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
+
+        self.update_status(person_type=Hero, points=0)
 
     @return_changes
     def shoot(self, is_hero_shot: bool = False):
