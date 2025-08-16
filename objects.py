@@ -18,13 +18,14 @@ class Hero(BasePerson):
 
 
 @dataclass
-class Bullet(BasePerson):
-    pass
+class Enemy(BasePerson):
+    steps_count: int = 0
 
 
 @dataclass
-class Enemy(BasePerson):
-    steps_count: int = 0
+class Bullet(BasePerson):
+    owner: Optional[type[Hero | Enemy]] = None
+
 
 @dataclass
 class PositionChange:

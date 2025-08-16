@@ -41,8 +41,8 @@ class GamePlay:
                 Bullet(
                     y=self._hero.y,
                     x=self._hero.x,
-                    motion_direction=self._hero.motion_direction
-                    or MotionDirection.DOWN,
+                    motion_direction=self._hero.motion_direction or MotionDirection.DOWN,
+                    owner=Hero,
                 )
             )
 
@@ -53,6 +53,7 @@ class GamePlay:
                         y=enemy.y,
                         x=enemy.x,
                         motion_direction=enemy.motion_direction or MotionDirection(randint(1, 4)),
+                        owner=Enemy,
                     )
                 )
 
@@ -68,7 +69,7 @@ class GamePlay:
                 )
                 bullet.motion_direction = None
 
-            elif counter_enemy := self._get_enemy_by_coordinates(new_y, new_x):
+            elif (counter_enemy := self._get_enemy_by_coordinates(new_y, new_x)) and bullet.owner == Hero:
                 counter_enemy.is_alive = False
                 bullet.motion_direction = None
                 self._game_field.update_cells(
