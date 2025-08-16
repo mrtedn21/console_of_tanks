@@ -6,32 +6,10 @@ import logging
 from game_field import GameField
 from gameplay_utils import return_changes
 from gameplay_exceptions import GameOverError
-from constants import MotionDirection, PositionChange, Cell, ENEMIES_COUNT
+from constants import MotionDirection, Cell, ENEMIES_COUNT
+from objects import BasePerson, Hero, Enemy, Bullet, PositionChange, StatusChange
 
 logger = logging.getLogger()
-
-
-@dataclass
-class BasePerson:
-    y: int
-    x: int
-    motion_direction: Optional[MotionDirection] = None
-    is_alive: bool = True
-
-
-@dataclass
-class Hero(BasePerson):
-    pass
-
-
-@dataclass
-class Bullet(BasePerson):
-    pass
-
-
-@dataclass
-class Enemy(BasePerson):
-    steps_count: int = 0
 
 
 class GamePlay:
@@ -40,26 +18,21 @@ class GamePlay:
         self._bullets: list[Bullet] = []
         self._enemies: list[Enemy] = []
         self._hero: Hero
+        self._status_changes: list[StatusChange] = []
 
     @return_changes
     def init_map_and_heroes(self, game_map: list[list[int]]):
         for index_y, y in enumerate(game_map):
             for index_x, x in enumerate(y):
-                self._game_field.update_cell(
-                    PositionChange(new_y=index_y, new_x=index_x, value=Cell(x))
-                )
+                self.update_cell(new_y=index_y, new_x=index_x, value=Cell(x))
 
         self._hero = Hero(y=1, x=1)
 
-        self._game_field.update_cell(
-            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
-        )
+        self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
         for _ in range(ENEMIES_COUNT):
             enemy = self._get_new_enemy()
             self._enemies.append(enemy)
-            self._game_field.update_cell(
-                PositionChange(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY),
-            )
+            self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
 
     @return_changes
     def shoot(self, is_hero_shot: bool = False):
@@ -85,7 +58,7 @@ class GamePlay:
 
         for bullet in self._bullets:
             new_y, new_x = self._get_new_coordinate_by_motion_direction(
-                bullet, bullet.motion_direction
+                bullet, bullet.motion_direction,
             )
 
             if self._game_field.get(new_y, new_x) == Cell.BRICKS:
@@ -102,6 +75,8 @@ class GamePlay:
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
+                self._hero.points += 1
+                self.update_status(person_type=Hero, points=self._hero.points)
 
             elif self._game_field.get(new_y, new_x) == Cell.TANK:
                 self._hero.is_alive = False
@@ -124,9 +99,7 @@ class GamePlay:
 
             elif not self._can_object_move(new_y, new_x):
                 bullet.motion_direction = None
-                self._game_field.update_cell(
-                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                )
+                self.update_cell(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY)
 
             else:
                 self._game_field.update_cells(
@@ -141,15 +114,9 @@ class GamePlay:
         # checking is new coordinates of bullet the same with tank, in reason of multiple checks
         for enemy in self._enemies:
             if enemy.is_alive:
-                self._game_field.update_cell(
-                    PositionChange(
-                        new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY
-                    )
-                )
+                self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
         if self._hero.is_alive:
-            self._game_field.update_cell(
-                PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
-            )
+            self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
@@ -163,9 +130,7 @@ class GamePlay:
 
         if self._game_field.get(new_y, new_x) == Cell.ENEMY:
             self._hero.is_alive = False
-            self._game_field.update_cell(
-                PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
-            )
+            self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
             raise GameOverError
 
         if not self._can_object_move(new_y, new_x):
@@ -193,9 +158,7 @@ class GamePlay:
 
             if self._game_field.get(new_y, new_x) == Cell.TANK:
                 self._hero.is_alive = False
-                self._game_field.update_cell(
-                    PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
-                )
+                self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
                 raise GameOverError
 
             if not self._can_object_move(new_y, new_x):
@@ -274,3 +237,17 @@ class GamePlay:
                 continue
 
             return Enemy(y=y, x=x)
+
+    def update_cell(self, new_y: int, new_x: int, value: Cell):
+        self._game_field.update_cell(
+            PositionChange(new_y=new_y, new_x=new_x, value=value)
+        )
+
+    def update_status(self, person_type: type[BasePerson], points: int):
+        self._status_changes.append(StatusChange(person_type=person_type, points=points))
+
+    def clear_changes(self):
+        self._status_changes = []
+
+    def get_changes(self):
+        return self._status_changes

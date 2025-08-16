@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from gameplay import GamePlay
 from gameplay_exceptions import GameOverError, GameWinError
-from constants import MotionDirection
+from constants import MotionDirection, DISPLAY_WIDTH
 from terminal import Terminal
 import logging
 
@@ -34,29 +34,32 @@ pressed_key_to_motion_direction = defaultdict(
 )
 
 
-async def shoot(terminal, game_play):
+async def shoot(terminal: Terminal, game_play):
     while global_pressed_key != ESCAPE_KEY:
-        changes = game_play.shoot(global_pressed_key == SPACE)
-        terminal.print_changes(changes)
+        terminal.print_changes(
+            *game_play.shoot(global_pressed_key == SPACE)
+        )
         await asyncio.sleep(1 / 50)
 
 
-async def move_hero(terminal, game_play):
+async def move_hero(terminal: Terminal, game_play):
     while global_pressed_key != ESCAPE_KEY:
         motion_direction = pressed_key_to_motion_direction[global_pressed_key]
-        changes = game_play.move_hero(motion_direction)
-        terminal.print_changes(changes)
+        terminal.print_changes(
+            *game_play.move_hero(motion_direction)
+        )
         await asyncio.sleep(1 / 50)
 
 
-async def move_enemy(terminal, game_play):
+async def move_enemy(terminal: Terminal, game_play):
     while True:
-        changes = game_play.move_enemy()
-        terminal.print_changes(changes)
+        terminal.print_changes(
+            *game_play.move_enemy()
+        )
         await asyncio.sleep(1 / 5)
 
 
-async def reading_key(terminal):
+async def reading_key(terminal: Terminal):
     global global_pressed_key
     while True:
         global_pressed_key = terminal.get_pressed_key()
@@ -66,14 +69,16 @@ async def reading_key(terminal):
 async def main():
     terminal = Terminal()
     max_y, max_x = terminal.get_max_y_and_x()
+    max_x -= DISPLAY_WIDTH
 
     with open("map.json") as f:
         game_map = json.load(f)
 
     game_play = GamePlay(max_y, max_x)
 
-    changes = game_play.init_map_and_heroes(game_map)
-    terminal.print_changes(changes)
+    terminal.print_changes(
+        *game_play.init_map_and_heroes(game_map)
+    )
 
     try:
         async with asyncio.TaskGroup() as tg:
@@ -86,8 +91,6 @@ async def main():
         terminal.destroy("Exit from game")
     except GameOverError:
         terminal.destroy("You lose, game over")
-    except GameWinError:
-        terminal.destroy("You win! Congratulations!")
     finally:
         terminal.destroy()
 

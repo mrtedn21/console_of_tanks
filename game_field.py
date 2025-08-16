@@ -1,6 +1,7 @@
 from functools import cached_property
-from constants import Cell, PositionChange
+from constants import Cell
 from typing import Optional
+from objects import PositionChange
 
 
 class GameField:

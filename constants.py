@@ -34,23 +34,3 @@ class Cell(Enum):
     BULLET = 3
     BRICKS = 4
     IRON = 5
-
-@dataclass
-class BaseGamePlayChange:
-    pass
-
-
-@dataclass
-class PositionChange(BaseGamePlayChange):
-    new_y: int
-    new_x: int
-
-    value: Cell
-
-    old_y: Optional[int] = None
-    old_x: Optional[int] = None
-
-
-@dataclass
-class StatusChange(BaseGamePlayChange):
-    hero_points: int = 0
