@@ -8,8 +8,8 @@ class BasePerson:
     y: int
     x: int
     motion_direction: Optional[MotionDirection] = None
-    is_alive: bool = True
     points: int = 0
+    lives_count: int = 3
 
 
 @dataclass
