@@ -82,10 +82,12 @@ class GamePlay:
 
             elif self._game_field.get(new_y, new_x) == Cell.TANK:
                 self._hero.lives_count -= 1
+                self._hero.y, self._hero.x = 1, 1
                 bullet.motion_direction = None
                 self._game_field.update_cells(
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                    PositionChange(new_y=1, new_x=1, value=Cell.TANK),
                 )
                 if not self._hero.lives_count:
                     raise GameOverError
@@ -133,7 +135,9 @@ class GamePlay:
 
         if self._game_field.get(new_y, new_x) == Cell.ENEMY:
             self._hero.lives_count -= 1
+            new_y, new_x = 1, 1
             self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
+            self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
             if not self._hero.lives_count:
                 raise GameOverError
 
@@ -158,7 +162,9 @@ class GamePlay:
 
             if self._game_field.get(new_y, new_x) == Cell.TANK:
                 self._hero.lives_count -= 1
+                self._hero.y, self._hero.x = 1, 1
                 self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
+                self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
                 if not self._hero.lives_count:
                     raise GameOverError
 
@@ -208,7 +214,7 @@ class GamePlay:
             (
                 0 <= new_y <= self._game_field.height - 1,
                 0 <= new_x <= self._game_field.width - 1,
-                self._game_field.get(new_y, new_x) == Cell.EMPTY,
+                self._game_field.get(new_y, new_x) != Cell.BRICKS,
             )
         )
 
