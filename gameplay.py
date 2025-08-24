@@ -6,7 +6,7 @@ from game_field import GameField
 from gameplay_utils import return_changes
 from gameplay_exceptions import GameOverError
 from constants import MotionDirection, Cell, ENEMIES_COUNT
-from objects import BasePerson, Hero, Enemy, Bullet, PositionChange, BaseStatusChange, PointsStatusChange
+from objects import BasePerson, Hero, Enemy, Bullet, PositionChange, BaseStatusChange, PointsStatusChange, LivesStatusChange
 
 logger = logging.getLogger()
 
@@ -89,6 +89,7 @@ class GamePlay:
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                     PositionChange(new_y=1, new_x=1, value=Cell.TANK),
                 )
+                self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
                 if not self._hero.lives_count:
                     raise GameOverError
 
@@ -138,6 +139,7 @@ class GamePlay:
             new_y, new_x = 1, 1
             self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
             self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
+            self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
             if not self._hero.lives_count:
                 raise GameOverError
 
@@ -165,6 +167,7 @@ class GamePlay:
                 self._hero.y, self._hero.x = 1, 1
                 self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
                 self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
+                self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
                 if not self._hero.lives_count:
                     raise GameOverError
 
@@ -247,6 +250,9 @@ class GamePlay:
 
     def update_points_status(self, person_type: type[BasePerson], value: int):
         self._status_changes.append(PointsStatusChange(person_type=person_type, value=value))
+
+    def update_lives_status(self, person_type: type[BasePerson], value: int):
+        self._status_changes.append(LivesStatusChange(person_type=person_type, value=value))
 
     def clear_changes(self):
         self._status_changes = []
