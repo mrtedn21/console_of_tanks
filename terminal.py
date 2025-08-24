@@ -1,5 +1,5 @@
 import curses
-from objects import Hero, Enemy, PositionChange, StatusChange
+from objects import Hero, Enemy, PositionChange, BaseStatusChange
 
 from constants import Cell
 
@@ -43,7 +43,7 @@ class Terminal:
         if print_text_after_destroy:
             print(print_text_after_destroy)
 
-    def print_changes(self, position_changes: list[PositionChange], status_chages: list[StatusChange]):
+    def print_changes(self, position_changes: list[PositionChange], status_chages: list[BaseStatusChange]):
         for change in position_changes:
             char = cell_type_to_terminal_char[change.value]
             self._print(change.new_y, change.new_x * 2, char)
@@ -53,7 +53,7 @@ class Terminal:
 
         for change in status_chages:
             if change.person_type == Hero:
-                self._print_number(1, self.max_x * 2 - 3, change.points)
+                self._print_number(1, self.max_x * 2 - 3, change.value)
 
         self._screen_obj.refresh()
 

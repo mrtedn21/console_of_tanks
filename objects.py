@@ -39,6 +39,16 @@ class PositionChange:
 
 
 @dataclass
-class StatusChange:
+class BaseStatusChange:
     person_type: type[BasePerson]
-    points: int = 0
+    value: int
+
+
+@dataclass
+class PointsStatusChange(BaseStatusChange):
+    pass
+
+
+@dataclass
+class LivesStatusChange(BaseStatusChange):
+    pass

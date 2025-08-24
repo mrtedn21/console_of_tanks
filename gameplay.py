@@ -6,7 +6,7 @@ from game_field import GameField
 from gameplay_utils import return_changes
 from gameplay_exceptions import GameOverError
 from constants import MotionDirection, Cell, ENEMIES_COUNT
-from objects import BasePerson, Hero, Enemy, Bullet, PositionChange, StatusChange
+from objects import BasePerson, Hero, Enemy, Bullet, PositionChange, BaseStatusChange, PointsStatusChange
 
 logger = logging.getLogger()
 
@@ -17,7 +17,7 @@ class GamePlay:
         self._bullets: list[Bullet] = []
         self._enemies: list[Enemy] = []
         self._hero: Hero = Hero(y=1, x=1)
-        self._status_changes: list[StatusChange] = []
+        self._status_changes: list[BaseStatusChange] = []
 
     @return_changes
     def init_map_and_heroes(self, game_map: list[list[int]]):
@@ -31,7 +31,7 @@ class GamePlay:
             self._enemies.append(enemy)
             self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
 
-        self.update_status(person_type=Hero, points=0)
+        self.update_points_status(person_type=Hero, value=0)
 
     @return_changes
     def shoot(self, is_hero_shot: bool = False):
@@ -78,7 +78,7 @@ class GamePlay:
                     PositionChange(new_y=counter_enemy.y, new_x=counter_enemy.x, value=Cell.ENEMY),
                 )
                 self._hero.points += 1
-                self.update_status(person_type=Hero, points=self._hero.points)
+                self.update_points_status(person_type=Hero, value=self._hero.points)
 
             elif self._game_field.get(new_y, new_x) == Cell.TANK:
                 self._hero.lives_count -= 1
@@ -245,8 +245,8 @@ class GamePlay:
             PositionChange(new_y=new_y, new_x=new_x, value=value)
         )
 
-    def update_status(self, person_type: type[BasePerson], points: int):
-        self._status_changes.append(StatusChange(person_type=person_type, points=points))
+    def update_points_status(self, person_type: type[BasePerson], value: int):
+        self._status_changes.append(PointsStatusChange(person_type=person_type, value=value))
 
     def clear_changes(self):
         self._status_changes = []
