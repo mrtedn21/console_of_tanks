@@ -76,6 +76,6 @@ class Terminal:
 
     def _print_initial_state(self):
         self._print_text(1, self.max_x * 2 - 11, 'points:')
-        self._print_text(2, self.max_x * 2 - 11, ' lives: 3')
+        self._print_text(2, self.max_x * 2 - 11, ' lives:')
         for i in range(self.max_y):
             self._print(i, self.max_x * 2 - 13, '|')

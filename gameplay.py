@@ -32,6 +32,7 @@ class GamePlay:
             self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
 
         self.update_points_status(person_type=Hero, value=0)
+        self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
 
     @return_changes
     def shoot(self, is_hero_shot: bool = False):
