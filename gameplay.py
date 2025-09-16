@@ -27,7 +27,8 @@ class GamePlay:
 
         self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
         for _ in range(ENEMIES_COUNT):
-            enemy = self._get_new_enemy()
+            new_enemy_y, new_enemy_x = self._get_random_coordinates_for_enemy()
+            enemy = Enemy(y=new_enemy_y, x=new_enemy_x)
             self._enemies.append(enemy)
             self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
 
@@ -72,7 +73,7 @@ class GamePlay:
             elif (counter_enemy := self._get_enemy_by_coordinates(new_y, new_x)) and bullet.owner == Hero:
                 counter_enemy.lives_count -= 1
                 bullet.motion_direction = None
-                counter_enemy.y, counter_enemy.x = self._get_random_coordinates()
+                counter_enemy.y, counter_enemy.x = self._get_random_coordinates_for_enemy()
                 self._game_field.update_cells(
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
@@ -233,16 +234,19 @@ class GamePlay:
     def _get_enemy_by_coordinates(self, y: int, x: int) -> Optional[Enemy]:
         return next(iter([e for e in self._enemies if (e.y, e.x) == (y, x)]), None)
 
-    def _get_new_enemy(self):
+    def _get_random_coordinates_for_enemy(self) -> tuple[int, int]:
         while True:
-            y, x = self._get_random_coordinates()
+            y = randint(1, self._game_field.height - 1)
+            x = randint(1, self._game_field.width - 1)
+
             if self._game_field.get(y, x) != Cell.EMPTY:
                 continue
 
-            return Enemy(y=y, x=x)
+            diff_with_hero = abs(y - self._hero.y) + abs(x - self._hero.x)
+            if diff_with_hero < 10:
+                continue
 
-    def _get_random_coordinates(self) -> tuple[int, int]:
-        return randint(1, self._game_field.height - 1), randint(1, self._game_field.width - 1)
+            return y, x
 
     def update_cell(self, new_y: int, new_x: int, value: Cell):
         self._game_field.update_cell(
