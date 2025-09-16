@@ -218,7 +218,7 @@ class GamePlay:
             (
                 0 <= new_y <= self._game_field.height - 1,
                 0 <= new_x <= self._game_field.width - 1,
-                self._game_field.get(new_y, new_x) != Cell.BRICKS,
+                self._game_field.get(new_y, new_x) not in (Cell.BRICKS, Cell.IRON),
             )
         )
 

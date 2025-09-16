@@ -6,11 +6,11 @@ from constants import Cell
 
 cell_type_to_terminal_char = {
     Cell.EMPTY: " ",
-    Cell.TANK: "▣",
-    Cell.ENEMY: "□",
+    Cell.TANK: "◍",
+    Cell.ENEMY: "◯",
     Cell.BULLET: "x",
-    Cell.BRICKS: "▪",
-    Cell.IRON: "I",
+    Cell.BRICKS: "◻",
+    Cell.IRON: "▪",
 }
 
 
