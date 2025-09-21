@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 from constants import MotionDirection, Cell
 
 
@@ -7,7 +6,7 @@ from constants import MotionDirection, Cell
 class BasePerson:
     y: int
     x: int
-    motion_direction: Optional[MotionDirection] = None
+    motion_direction: MotionDirection | None = None
     points: int = 0
     lives_count: int = 3
 
@@ -24,18 +23,21 @@ class Enemy(BasePerson):
 
 @dataclass
 class Bullet(BasePerson):
-    owner: Optional[type[Hero | Enemy]] = None
+    owner: type[Hero | Enemy] | None = None
+
+
+PersonToCellMap = {
+    Hero: Cell.TANK,
+    Enemy: Cell.ENEMY,
+    Bullet: Cell.BULLET,
+}
 
 
 @dataclass
 class PositionChange:
     new_y: int
     new_x: int
-
     value: Cell
-
-    old_y: Optional[int] = None
-    old_x: Optional[int] = None
 
 
 @dataclass

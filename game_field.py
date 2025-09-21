@@ -1,6 +1,5 @@
 from functools import cached_property
 from constants import Cell
-from typing import Optional
 from objects import PositionChange
 
 
@@ -26,7 +25,7 @@ class GameField:
         for position_change in position_changes:
             self.update_cell(position_change)
 
-    def get(self, y: int, x: int) -> Optional[Cell]:
+    def get(self, y: int, x: int) -> Cell | None:
         try:
             return self._matrix[y][x]
         except IndexError:

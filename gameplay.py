@@ -1,5 +1,6 @@
+from pickle import OBJ
+from posix import remove
 from random import randint
-from typing import Optional
 import logging
 
 from game_field import GameField
@@ -11,10 +12,11 @@ from objects import (
     Hero,
     Enemy,
     Bullet,
-    PositionChange as PC,
+    PositionChange,
     BaseStatusChange,
     PointsStatusChange,
     LivesStatusChange,
+    PersonToCellMap,
 )
 
 logger = logging.getLogger()
@@ -32,14 +34,14 @@ class GamePlay:
     def init_map_and_heroes(self, game_map: list[list[int]]):
         for index_y, y in enumerate(game_map):
             for index_x, x in enumerate(y):
-                self.update_cell(new_y=index_y, new_x=index_x, value=Cell(x))
+                self.update(new_y=index_y, new_x=index_x, value=Cell(x))
 
-        self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
+        self.update(object=self._hero)
         for _ in range(ENEMIES_COUNT):
             new_enemy_y, new_enemy_x = self._get_random_coordinates_for_enemy()
             enemy = Enemy(y=new_enemy_y, x=new_enemy_x)
             self._enemies.append(enemy)
-            self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
+            self.update(object=enemy)
 
         self.update_points_status(person_type=Hero, value=0)
         self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
@@ -74,35 +76,25 @@ class GamePlay:
             )
 
             if self._game_field.get(new_y, new_x) == Cell.BRICKS:
-                self._game_field.update_cells(
-                    PC(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
-                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                )
-                bullet.motion_direction = None
+                self.update(new_y=new_y, new_x=new_x, value=Cell.EMPTY)
+                self.update(object=bullet, remove_object=True)
 
             elif (
                 counter_enemy := self._get_enemy_by_coordinates(new_y, new_x)
             ) and bullet.owner == Hero:
                 counter_enemy.lives_count -= 1
-                bullet.motion_direction = None
                 counter_enemy.y, counter_enemy.x = self._get_random_coordinates_for_enemy()
-                self._game_field.update_cells(
-                    PC(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
-                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                    PC(new_y=counter_enemy.y, new_x=counter_enemy.x, value=Cell.ENEMY),
-                )
+                self.update(new_y=new_y, new_x=new_x, value=Cell.EMPTY)
+                self.update(object=bullet, remove_object=True)
+                self.update(object=counter_enemy)
                 self._hero.points += 1
                 self.update_points_status(person_type=Hero, value=self._hero.points)
 
             elif self._game_field.get(new_y, new_x) == Cell.TANK and Bullet.owner == Hero:
-                # self._hero.lives_count -= 1
-                self._hero.y, self._hero.x = 1, 1
-                bullet.motion_direction = None
-                self._game_field.update_cells(
-                    PC(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
-                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                    PC(new_y=1, new_x=1, value=Cell.TANK),
-                )
+                self._hero.lives_count -= 1
+                self.update(new_y=new_y, new_x=new_x, value=Cell.EMPTY)
+                self.update(object=bullet, remove_object=True)
+                self.update(object=self._hero, new_y=1, new_x=1)
                 self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
                 if not self._hero.lives_count:
                     raise GameOverError
@@ -110,21 +102,15 @@ class GamePlay:
             elif counter_bullet := self._get_bullet_by_coordinates(new_y, new_x):
                 bullet.motion_direction = None
                 counter_bullet.motion_direction = None
-                self._game_field.update_cells(
-                    PC(new_y=counter_bullet.y, new_x=counter_bullet.x, value=Cell.EMPTY),
-                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                )
+                self.update(object=counter_bullet, remove_object=True)
+                self.update(object=bullet, remove_object=True)
 
             elif not self._can_object_move(new_y, new_x):
-                bullet.motion_direction = None
-                self.update_cell(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY)
+                self.update(object=bullet, remove_object=True)
 
             else:
-                self._game_field.update_cells(
-                    PC(new_y=new_y, new_x=new_x, value=Cell.BULLET),
-                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                )
-                bullet.y, bullet.x = new_y, new_x
+                self.update(object=bullet, remove_object=True)
+                self.update(object=bullet, new_y=new_y, new_x=new_x)
 
         self._bullets = [b for b in self._bullets if b.motion_direction]
 
@@ -132,9 +118,9 @@ class GamePlay:
         # checking is new coordinates of bullet the same with tank, in reason of multiple checks
         for enemy in self._enemies:
             if enemy.lives_count:
-                self.update_cell(new_y=enemy.y, new_x=enemy.x, value=Cell.ENEMY)
+                self.update(object=enemy)
         if self._hero.lives_count:
-            self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.TANK)
+            self.update(self._hero)
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
@@ -145,22 +131,18 @@ class GamePlay:
         new_y, new_x = self._get_new_coordinate_by_motion_direction(self._hero, motion_direction)
 
         if self._game_field.get(new_y, new_x) == Cell.ENEMY:
-            # self._hero.lives_count -= 1
-            new_y, new_x = 1, 1
-            self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
-            self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
+            self.update(object=self._hero, remove_object=True)
+            self.update(object=self._hero, new_y=1, new_x=1)
             self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
             if not self._hero.lives_count:
                 raise GameOverError
 
-        if not self._can_object_move(new_y, new_x):
+        elif not self._can_object_move(new_y, new_x):
             return
 
-        self._game_field.update_cells(
-            PC(new_y=new_y, new_x=new_x, value=Cell.TANK),
-            PC(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY),
-        )
-        self._hero.y, self._hero.x = new_y, new_x
+        else:
+            self.update(object=self._hero, clear_object=True)
+            self.update(object=self._hero, new_y=new_y, new_x=new_x)
 
     @return_changes
     def move_enemy(self):
@@ -173,10 +155,8 @@ class GamePlay:
             )
 
             if self._game_field.get(new_y, new_x) == Cell.TANK:
-                self._hero.lives_count -= 1
-                self._hero.y, self._hero.x = 1, 1
-                self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
-                self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
+                self.update(object=self._hero, remove_object=True)
+                self.update(object=self._hero, new_y=1, new_x=1)
                 self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
                 if not self._hero.lives_count:
                     raise GameOverError
@@ -185,13 +165,9 @@ class GamePlay:
                 enemy.steps_count = 0
                 return
 
-            self._game_field.update_cells(
-                PC(new_y=enemy.y, new_x=enemy.x, value=Cell.EMPTY),
-                PC(new_y=new_y, new_x=new_x, value=Cell.ENEMY),
-            )
+            self.update(object=enemy, clear_object=True)
+            self.update(object=enemy, new_y=new_y, new_x=new_x)
 
-            enemy.y = new_y
-            enemy.x = new_x
             enemy.steps_count -= 1
 
     def _set_new_enemy_direction(self, enemy):
@@ -236,10 +212,10 @@ class GamePlay:
         """This functions detect random moment to allow enemy to shoot"""
         return randint(0, 30) == 0
 
-    def _get_bullet_by_coordinates(self, y: int, x: int) -> Optional[Bullet]:
+    def _get_bullet_by_coordinates(self, y: int, x: int) -> Bullet | None:
         return next(iter([b for b in self._bullets if (b.y, b.x) == (y, x)]), None)
 
-    def _get_enemy_by_coordinates(self, y: int, x: int) -> Optional[Enemy]:
+    def _get_enemy_by_coordinates(self, y: int, x: int) -> Enemy | None:
         return next(iter([e for e in self._enemies if (e.y, e.x) == (y, x)]), None)
 
     def _get_random_coordinates_for_enemy(self) -> tuple[int, int]:
@@ -256,8 +232,33 @@ class GamePlay:
 
             return y, x
 
-    def update_cell(self, new_y: int, new_x: int, value: Cell):
-        self._game_field.update_cell(PC(new_y=new_y, new_x=new_x, value=value))
+    def update(
+        self,
+        object: BasePerson | None = None,
+        new_y: int | None = None,
+        new_x: int | None = None,
+        value: Cell | None = None,
+        remove_object: bool = False,
+        clear_object: bool = False,
+    ):
+        if object and value is None:
+            object.y, object.x = new_y, new_x
+            value = PersonToCellMap[type(object)]
+
+        if new_y is None and new_x is None:
+            # In this case game play needs to use current coordinates of object
+            new_y, new_x = object.y, object.x
+
+        if remove_object or clear_object:
+            value = Cell.EMPTY
+
+        if remove_object:
+            if isinstance(object, Bullet):
+                object.motion_direction = None
+            elif isinstance(object, Hero):
+                object.lives_count -= 1
+
+        self._game_field.update_cell(PositionChange(new_y=new_y, new_x=new_x, value=value))
 
     def update_points_status(self, person_type: type[BasePerson], value: int):
         self._status_changes.append(PointsStatusChange(person_type=person_type, value=value))
