@@ -7,9 +7,7 @@ from objects import PositionChange
 class GameField:
     def __init__(self, height: int, width: int):
         self._position_changes: list[PositionChange] = []
-        self._matrix: list[list[Cell]] = [
-            [Cell.EMPTY for _ in range(width)] for _ in range(height)
-        ]
+        self._matrix: list[list[Cell]] = [[Cell.EMPTY for _ in range(width)] for _ in range(height)]
 
     def clear_changes(self):
         self._position_changes = []
@@ -19,9 +17,7 @@ class GameField:
 
     def update_cell(self, position_change: PositionChange):
         try:
-            self._matrix[position_change.new_y][position_change.new_x] = (
-                position_change.value
-            )
+            self._matrix[position_change.new_y][position_change.new_x] = position_change.value
             self._position_changes.append(position_change)
         except IndexError:
             pass

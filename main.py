@@ -8,9 +8,7 @@ from constants import MotionDirection
 from terminal import Terminal
 import logging
 
-logging.basicConfig(
-    filename="some.log", level=logging.INFO, format="%(asctime)s %(message)s"
-)
+logging.basicConfig(filename='some.log', level=logging.INFO, format='%(asctime)s %(message)s')
 logger = logging.getLogger()
 
 global_pressed_key = None
@@ -65,7 +63,7 @@ async def main():
     max_y, max_x = terminal.get_max_y_and_x()
     max_x -= 7
 
-    with open("map.json") as f:
+    with open('map.json') as f:
         game_map = json.load(f)
 
     game_play = GamePlay(max_y, max_x)
@@ -80,12 +78,12 @@ async def main():
             tg.create_task(move_hero(terminal, game_play))
 
     except KeyboardInterrupt:
-        terminal.destroy("Exit from game")
+        terminal.destroy('Exit from game')
     except GameOverError:
-        terminal.destroy("You lose, game over")
+        terminal.destroy('You lose, game over')
     finally:
         terminal.destroy()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())

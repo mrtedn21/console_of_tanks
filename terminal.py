@@ -11,12 +11,12 @@ from constants import Cell
 
 
 cell_type_to_terminal_char = {
-    Cell.EMPTY: " ",
-    Cell.TANK: "◍",
-    Cell.ENEMY: "◯",
-    Cell.BULLET: "x",
-    Cell.BRICKS: "◻",
-    Cell.IRON: "▪",
+    Cell.EMPTY: ' ',
+    Cell.TANK: '◍',
+    Cell.ENEMY: '◯',
+    Cell.BULLET: 'x',
+    Cell.BRICKS: '◻',
+    Cell.IRON: '▪',
 }
 
 
@@ -40,7 +40,7 @@ class Terminal:
     def get_pressed_key(self):
         return self._screen_obj.getch()
 
-    def destroy(self, print_text_after_destroy: str = ""):
+    def destroy(self, print_text_after_destroy: str = ''):
         curses.nocbreak()
         self._screen_obj.keypad(False)
         curses.echo()
@@ -85,7 +85,7 @@ class Terminal:
         self._print_text(y, x, str(number))
 
     def _print_initial_state(self):
-        self._print_text(1, self.max_x * 2 - 11, "points:")
-        self._print_text(2, self.max_x * 2 - 11, " lives:")
+        self._print_text(1, self.max_x * 2 - 11, 'points:')
+        self._print_text(2, self.max_x * 2 - 11, ' lives:')
         for i in range(self.max_y):
-            self._print(i, self.max_x * 2 - 13, "|")
+            self._print(i, self.max_x * 2 - 13, '|')
