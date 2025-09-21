@@ -11,7 +11,7 @@ from objects import (
     Hero,
     Enemy,
     Bullet,
-    PositionChange,
+    PositionChange as PC,
     BaseStatusChange,
     PointsStatusChange,
     LivesStatusChange,
@@ -77,8 +77,8 @@ class GamePlay:
 
             if self._game_field.get(new_y, new_x) == Cell.BRICKS:
                 self._game_field.update_cells(
-                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
-                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                    PC(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
+                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
                 bullet.motion_direction = None
 
@@ -91,9 +91,9 @@ class GamePlay:
                     self._get_random_coordinates_for_enemy()
                 )
                 self._game_field.update_cells(
-                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
-                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                    PositionChange(
+                    PC(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
+                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                    PC(
                         new_y=counter_enemy.y, new_x=counter_enemy.x, value=Cell.ENEMY
                     ),
                 )
@@ -107,9 +107,9 @@ class GamePlay:
                 self._hero.y, self._hero.x = 1, 1
                 bullet.motion_direction = None
                 self._game_field.update_cells(
-                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
-                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                    PositionChange(new_y=1, new_x=1, value=Cell.TANK),
+                    PC(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
+                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                    PC(new_y=1, new_x=1, value=Cell.TANK),
                 )
                 self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
                 if not self._hero.lives_count:
@@ -119,10 +119,10 @@ class GamePlay:
                 bullet.motion_direction = None
                 counter_bullet.motion_direction = None
                 self._game_field.update_cells(
-                    PositionChange(
+                    PC(
                         new_y=counter_bullet.y, new_x=counter_bullet.x, value=Cell.EMPTY
                     ),
-                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
 
             elif not self._can_object_move(new_y, new_x):
@@ -131,8 +131,8 @@ class GamePlay:
 
             else:
                 self._game_field.update_cells(
-                    PositionChange(new_y=new_y, new_x=new_x, value=Cell.BULLET),
-                    PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
+                    PC(new_y=new_y, new_x=new_x, value=Cell.BULLET),
+                    PC(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
                 )
                 bullet.y, bullet.x = new_y, new_x
 
@@ -172,8 +172,8 @@ class GamePlay:
             return
 
         self._game_field.update_cells(
-            PositionChange(new_y=new_y, new_x=new_x, value=Cell.TANK),
-            PositionChange(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY),
+            PC(new_y=new_y, new_x=new_x, value=Cell.TANK),
+            PC(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY),
         )
         self._hero.y, self._hero.x = new_y, new_x
 
@@ -203,8 +203,8 @@ class GamePlay:
                 return
 
             self._game_field.update_cells(
-                PositionChange(new_y=enemy.y, new_x=enemy.x, value=Cell.EMPTY),
-                PositionChange(new_y=new_y, new_x=new_x, value=Cell.ENEMY),
+                PC(new_y=enemy.y, new_x=enemy.x, value=Cell.EMPTY),
+                PC(new_y=new_y, new_x=new_x, value=Cell.ENEMY),
             )
 
             enemy.y = new_y
@@ -275,7 +275,7 @@ class GamePlay:
 
     def update_cell(self, new_y: int, new_x: int, value: Cell):
         self._game_field.update_cell(
-            PositionChange(new_y=new_y, new_x=new_x, value=value)
+            PC(new_y=new_y, new_x=new_x, value=value)
         )
 
     def update_points_status(self, person_type: type[BasePerson], value: int):
