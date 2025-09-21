@@ -1,0 +1,28 @@
+[project]
+name = "console-of-tanks"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "mrtedn21",email = "bezgin.sasha06@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard] (>=0.117.1,<0.118.0)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.13.1,<0.14.0)"
+]
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+
+[tool.ruff.format]
+quote-style = 'single'
