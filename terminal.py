@@ -1,5 +1,11 @@
 import curses
-from objects import Hero, Enemy, PointsStatusChange, PositionChange, BaseStatusChange, LivesStatusChange
+from objects import (
+    Hero,
+    PointsStatusChange,
+    PositionChange,
+    BaseStatusChange,
+    LivesStatusChange,
+)
 
 from constants import Cell
 
@@ -43,7 +49,11 @@ class Terminal:
         if print_text_after_destroy:
             print(print_text_after_destroy)
 
-    def print_changes(self, position_changes: list[PositionChange], status_chages: list[BaseStatusChange]):
+    def print_changes(
+        self,
+        position_changes: list[PositionChange],
+        status_chages: list[BaseStatusChange],
+    ):
         for change in position_changes:
             char = cell_type_to_terminal_char[change.value]
             self._print(change.new_y, change.new_x * 2, char)
@@ -75,7 +85,7 @@ class Terminal:
         self._print_text(y, x, str(number))
 
     def _print_initial_state(self):
-        self._print_text(1, self.max_x * 2 - 11, 'points:')
-        self._print_text(2, self.max_x * 2 - 11, ' lives:')
+        self._print_text(1, self.max_x * 2 - 11, "points:")
+        self._print_text(2, self.max_x * 2 - 11, " lives:")
         for i in range(self.max_y):
-            self._print(i, self.max_x * 2 - 13, '|')
+            self._print(i, self.max_x * 2 - 13, "|")

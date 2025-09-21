@@ -1,8 +1,6 @@
-from dataclasses import dataclass
-from typing import Optional
 from enum import Enum
 
-ENEMIES_COUNT = 2
+ENEMIES_COUNT = 3
 
 
 class MotionDirection(int, Enum):

@@ -6,7 +6,16 @@ from game_field import GameField
 from gameplay_utils import return_changes
 from gameplay_exceptions import GameOverError
 from constants import MotionDirection, Cell, ENEMIES_COUNT
-from objects import BasePerson, Hero, Enemy, Bullet, PositionChange, BaseStatusChange, PointsStatusChange, LivesStatusChange
+from objects import (
+    BasePerson,
+    Hero,
+    Enemy,
+    Bullet,
+    PositionChange,
+    BaseStatusChange,
+    PointsStatusChange,
+    LivesStatusChange,
+)
 
 logger = logging.getLogger()
 
@@ -42,7 +51,8 @@ class GamePlay:
                 Bullet(
                     y=self._hero.y,
                     x=self._hero.x,
-                    motion_direction=self._hero.motion_direction or MotionDirection.DOWN,
+                    motion_direction=self._hero.motion_direction
+                    or MotionDirection.DOWN,
                     owner=Hero,
                 )
             )
@@ -53,14 +63,16 @@ class GamePlay:
                     Bullet(
                         y=enemy.y,
                         x=enemy.x,
-                        motion_direction=enemy.motion_direction or MotionDirection(randint(1, 4)),
+                        motion_direction=enemy.motion_direction
+                        or MotionDirection(randint(1, 4)),
                         owner=Enemy,
                     )
                 )
 
         for bullet in self._bullets:
             new_y, new_x = self._get_new_coordinate_by_motion_direction(
-                bullet, bullet.motion_direction,
+                bullet,
+                bullet.motion_direction,
             )
 
             if self._game_field.get(new_y, new_x) == Cell.BRICKS:
@@ -70,20 +82,28 @@ class GamePlay:
                 )
                 bullet.motion_direction = None
 
-            elif (counter_enemy := self._get_enemy_by_coordinates(new_y, new_x)) and bullet.owner == Hero:
+            elif (
+                counter_enemy := self._get_enemy_by_coordinates(new_y, new_x)
+            ) and bullet.owner == Hero:
                 counter_enemy.lives_count -= 1
                 bullet.motion_direction = None
-                counter_enemy.y, counter_enemy.x = self._get_random_coordinates_for_enemy()
+                counter_enemy.y, counter_enemy.x = (
+                    self._get_random_coordinates_for_enemy()
+                )
                 self._game_field.update_cells(
                     PositionChange(new_y=new_y, new_x=new_x, value=Cell.EMPTY),
                     PositionChange(new_y=bullet.y, new_x=bullet.x, value=Cell.EMPTY),
-                    PositionChange(new_y=counter_enemy.y, new_x=counter_enemy.x, value=Cell.ENEMY),
+                    PositionChange(
+                        new_y=counter_enemy.y, new_x=counter_enemy.x, value=Cell.ENEMY
+                    ),
                 )
                 self._hero.points += 1
                 self.update_points_status(person_type=Hero, value=self._hero.points)
 
-            elif self._game_field.get(new_y, new_x) == Cell.TANK:
-                self._hero.lives_count -= 1
+            elif (
+                self._game_field.get(new_y, new_x) == Cell.TANK and Bullet.owner == Hero
+            ):
+                # self._hero.lives_count -= 1
                 self._hero.y, self._hero.x = 1, 1
                 bullet.motion_direction = None
                 self._game_field.update_cells(
@@ -128,7 +148,10 @@ class GamePlay:
 
     @return_changes
     def move_hero(self, motion_direction: MotionDirection):
-        if motion_direction == motion_direction.DO_NOTHING or not self._hero.lives_count:
+        if (
+            motion_direction == motion_direction.DO_NOTHING
+            or not self._hero.lives_count
+        ):
             return
 
         self._hero.motion_direction = motion_direction
@@ -137,7 +160,7 @@ class GamePlay:
         )
 
         if self._game_field.get(new_y, new_x) == Cell.ENEMY:
-            self._hero.lives_count -= 1
+            # self._hero.lives_count -= 1
             new_y, new_x = 1, 1
             self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
             self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
@@ -167,7 +190,9 @@ class GamePlay:
             if self._game_field.get(new_y, new_x) == Cell.TANK:
                 self._hero.lives_count -= 1
                 self._hero.y, self._hero.x = 1, 1
-                self.update_cell(new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY)
+                self.update_cell(
+                    new_y=self._hero.y, new_x=self._hero.x, value=Cell.EMPTY
+                )
                 self.update_cell(new_y=1, new_x=1, value=Cell.TANK)
                 self.update_lives_status(person_type=Hero, value=self._hero.lives_count)
                 if not self._hero.lives_count:
@@ -254,10 +279,14 @@ class GamePlay:
         )
 
     def update_points_status(self, person_type: type[BasePerson], value: int):
-        self._status_changes.append(PointsStatusChange(person_type=person_type, value=value))
+        self._status_changes.append(
+            PointsStatusChange(person_type=person_type, value=value)
+        )
 
     def update_lives_status(self, person_type: type[BasePerson], value: int):
-        self._status_changes.append(LivesStatusChange(person_type=person_type, value=value))
+        self._status_changes.append(
+            LivesStatusChange(person_type=person_type, value=value)
+        )
 
     def clear_changes(self):
         self._status_changes = []

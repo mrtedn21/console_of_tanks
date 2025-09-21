@@ -3,7 +3,7 @@ import asyncio
 from collections import defaultdict
 
 from gameplay import GamePlay
-from gameplay_exceptions import GameOverError, GameWinError
+from gameplay_exceptions import GameOverError
 from constants import MotionDirection
 from terminal import Terminal
 import logging
@@ -36,26 +36,20 @@ pressed_key_to_motion_direction = defaultdict(
 
 async def shoot(terminal: Terminal, game_play):
     while global_pressed_key != ESCAPE_KEY:
-        terminal.print_changes(
-            *game_play.shoot(global_pressed_key == SPACE)
-        )
+        terminal.print_changes(*game_play.shoot(global_pressed_key == SPACE))
         await asyncio.sleep(1 / 50)
 
 
 async def move_hero(terminal: Terminal, game_play):
     while global_pressed_key != ESCAPE_KEY:
         motion_direction = pressed_key_to_motion_direction[global_pressed_key]
-        terminal.print_changes(
-            *game_play.move_hero(motion_direction)
-        )
+        terminal.print_changes(*game_play.move_hero(motion_direction))
         await asyncio.sleep(1 / 50)
 
 
 async def move_enemy(terminal: Terminal, game_play):
     while True:
-        terminal.print_changes(
-            *game_play.move_enemy()
-        )
+        terminal.print_changes(*game_play.move_enemy())
         await asyncio.sleep(1 / 5)
 
 
@@ -76,9 +70,7 @@ async def main():
 
     game_play = GamePlay(max_y, max_x)
 
-    terminal.print_changes(
-        *game_play.init_map_and_heroes(game_map)
-    )
+    terminal.print_changes(*game_play.init_map_and_heroes(game_map))
 
     try:
         async with asyncio.TaskGroup() as tg:
